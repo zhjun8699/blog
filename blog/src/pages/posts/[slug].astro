@@ -1,0 +1,258 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = (await getCollection('blog')).sort(
+    (a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
+  );
+  return posts.map((post, index) => ({
+    params: { slug: post.slug },
+    props: {
+      post,
+      prevPost: index + 1 < posts.length ? posts[index + 1] : null,
+      nextPost: index > 0 ? posts[index - 1] : null,
+      allPosts: posts,
+    },
+  }));
+}
+
+const { post, prevPost, nextPost, allPosts } = Astro.props;
+const { Content, headings } = await post.render();
+
+const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const relatedPosts = allPosts
+  .filter((p) => p.slug !== post.slug && p.data.category === post.data.category)
+  .slice(0, 3);
+
+const placeInfo = post.data.placeInfo;
+const promoCard = post.data.promoCard;
+const templateType = post.data.templateType || '一般文章';
+const seoData = post.data.seo || {};
+const imageAltText = seoData.imageAlt || post.data.title;
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} image={post.data.heroImage} seo={seoData}>
+  <article class="single-post">
+    <h1 class="milk-tea-heading" style="font-size: 1.65rem; margin-top: 0;">
+      {post.data.title}
+    </h1>
+
+    <div class="post-meta" style="margin-bottom: 16px;">
+      <span class="category-badge">{post.data.category}</span>
+      <span>📅 發布日期：{new Date(post.data.pubDate).toLocaleDateString('zh-TW')}</span>
+      <span>👁️ 瀏覽次數：<strong id="post-view-count">讀取中...</strong> 次</span>
+      {(post.data.tags || []).map((tag) => (
+        <a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">#{tag}</a>
+      ))}
+    </div>
+
+    {templateType !== '一般文章' && (
+      <div style="background: var(--milk-tea-bg); color: var(--text-primary); padding: 8px 14px; border-radius: 6px; font-size: 0.88rem; font-weight: 700; margin-bottom: 20px;">
+        📌 本文採用專屬排版模板：{templateType}
+      </div>
+    )}
+
+    <div class="share-bar">
+      <span style="font-size: 0.88rem; font-weight: 700;">分享這篇文章：</span>
+      <button class="share-btn share-line" onclick="shareTo('line')">LINE 分享</button>
+      <button class="share-btn share-fb" onclick="shareTo('fb')">Facebook</button>
+      <button class="share-btn share-threads" onclick="shareTo('threads')">Threads</button>
+      <button class="share-btn share-copy" onclick="copyPostUrl(this)">🔗 複製連結</button>
+    </div>
+
+    {post.data.heroImage && (
+      <img src={post.data.heroImage} alt={imageAltText} style="width: 100%; margin-bottom: 22px;" />
+    )}
+
+    {tocHeadings.length > 0 && (
+      <details class="toc-box" open>
+        <summary>📑 本篇快速目錄（點擊可跳轉段落）</summary>
+        <ul class="toc-list">
+          {tocHeadings.map((h) => (
+            <li class={`toc-h${h.depth}`}>
+              <a href={`#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    )}
+
+    <div class="ad-slot">
+      📢 文章頂部廣告版位 (可貼入 Google AdSense 或最新主打活動)
+    </div>
+
+    <div class="article-body">
+      <Content />
+    </div>
+
+    {placeInfo && placeInfo.enabled && (
+      <div class="place-info-card">
+        <div class="place-info-title">
+          <span>📍 {placeInfo.name || '店家 / 景點資訊'}</span>
+          {placeInfo.rating && <span style="font-size: 0.95rem;">{placeInfo.rating}</span>}
+        </div>
+        <ul class="place-info-list">
+          {placeInfo.address && <li><strong>🏠 地址：</strong>{placeInfo.address}</li>}
+          {placeInfo.hours && <li><strong>🕒 營業時間：</strong>{placeInfo.hours}</li>}
+          {placeInfo.phone && <li><strong>📞 電話：</strong>{placeInfo.phone}</li>}
+        </ul>
+        {placeInfo.mapUrl && (
+          <a href={placeInfo.mapUrl} target="_blank" rel="noopener noreferrer" class="map-btn">
+            🗺️ 點此開啟 Google Maps 導航 →
+          </a>
+        )}
+      </div>
+    )}
+
+    <!-- 4. 團購導購卡片 + 雲端點擊次數統計 (管理員登入時會自動看到總點擊數) -->
+    {promoCard && promoCard.enabled && (
+      <div class="promo-product-card">
+        {promoCard.image && (
+          <img src={promoCard.image} alt={promoCard.title} style="width: 100%; border-radius: 8px; object-fit: cover;" />
+        )}
+        <div>
+          <span class="category-badge" style="background: #B85D3B;">私藏推薦 / 團購精選</span>
+          <h3 style="margin: 8px 0; font-size: 1.25rem;">{promoCard.title}</h3>
+          {promoCard.price && <div class="promo-price">{promoCard.price}</div>}
+          {promoCard.summary && <p style="font-size: 0.92rem; margin: 8px 0;">{promoCard.summary}</p>}
+          {promoCard.url && (
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <a 
+                href={promoCard.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="promo-buy-btn tracking-link"
+                data-tracking-id={promoCard.trackingId || `promo-${post.slug}`}
+              >
+                {promoCard.buttonText || '🔥 點此查看優惠詳情'}
+              </a>
+              <span 
+                class="admin-click-stats" 
+                style="display: none; background: #3D352E; color: #FAF6F0; padding: 5px 12px; border-radius: 20px; font-size: 0.82rem; font-weight: bold;"
+              >
+                📊 管理員數據：導購已被點擊 <strong id="promo-click-count">0</strong> 次
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+
+    <div class="ad-slot">
+      📢 文章結尾廣告版位 (可貼入 Google AdSense 或 LINE 社群邀請橫幅)
+    </div>
+
+    <div class="share-bar">
+      <span style="font-size: 0.88rem; font-weight: 700;">覺得實用嗎？分享給朋友：</span>
+      <button class="share-btn share-line" onclick="shareTo('line')">LINE 分享</button>
+      <button class="share-btn share-fb" onclick="shareTo('fb')">Facebook</button>
+      <button class="share-btn share-threads" onclick="shareTo('threads')">Threads</button>
+      <button class="share-btn share-copy" onclick="copyPostUrl(this)">🔗 複製連結</button>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; gap: 15px; flex-wrap: wrap; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 18px 0; margin: 28px 0;">
+      <div>
+        {prevPost && (
+          <a href={`/posts/${prevPost.slug}/`} style="font-size: 0.92rem;">
+            ← 上一篇：<strong>{prevPost.data.title}</strong>
+          </a>
+        )}
+      </div>
+      <div>
+        {nextPost && (
+          <a href={`/posts/${nextPost.slug}/`} style="font-size: 0.92rem;">
+            下一篇：<strong>{nextPost.data.title}</strong> →
+          </a>
+        )}
+      </div>
+    </div>
+
+    {relatedPosts.length > 0 && (
+      <div style="margin-top: 30px;">
+        <h3 class="milk-tea-heading" style="font-size: 1.15rem;">📖 延伸閱讀：更多【{post.data.category}】精選文章</h3>
+        <div class="related-posts-grid">
+          {relatedPosts.map((rp) => (
+            <a href={`/posts/${rp.slug}/`} class="related-card">
+              {rp.data.heroImage && (
+                <img src={rp.data.heroImage} alt={rp.data.title} style="height: 120px; width: 100%; object-fit: cover;" />
+              )}
+              <h4>{rp.data.title}</h4>
+              <span style="font-size: 0.8rem; color: var(--text-muted);">📅 {new Date(rp.data.pubDate).toLocaleDateString('zh-TW')}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div style="margin-top: 30px;">
+      <a href="/" class="read-more-btn">← 返回文章列表首頁</a>
+    </div>
+  </article>
+
+  <script is:inline>
+    const slug = window.location.pathname.split('/').filter(Boolean).pop() || 'home';
+    const namespace = 'gavin-select-blog-2026';
+    const countEl = document.getElementById('post-view-count');
+
+    // 1. 文章瀏覽次數統計
+    fetch(`https://api.counterapi.dev/v1/${namespace}/${slug}/up`)
+      .then(res => res.json())
+      .then(data => {
+        if (countEl && data && typeof data.count === 'number') {
+          countEl.innerText = data.count.toLocaleString();
+        }
+      })
+      .catch(() => {
+        if (countEl) countEl.innerText = '熱門瀏覽';
+      });
+
+    // 2. 團購按鈕雲端點擊次數讀取與點擊 +1 追蹤
+    const trackingBtn = document.querySelector('.tracking-link');
+    const promoCountEl = document.getElementById('promo-click-count');
+    if (trackingBtn) {
+      const trackingId = trackingBtn.dataset.trackingId;
+      // 讀取目前雲端點擊總數 (供管理員查看)
+      fetch(`https://api.counterapi.dev/v1/${namespace}/click-${trackingId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (promoCountEl && data && typeof data.count === 'number') {
+            promoCountEl.innerText = data.count.toLocaleString();
+          }
+        })
+        .catch(() => {});
+
+      // 當讀者點擊團購按鈕時，雲端計數器自動 +1
+      trackingBtn.addEventListener('click', function() {
+        fetch(`https://api.counterapi.dev/v1/${namespace}/click-${trackingId}/up`)
+          .then(res => res.json())
+          .then(data => {
+            if (promoCountEl && data && typeof data.count === 'number') {
+              promoCountEl.innerText = data.count.toLocaleString();
+            }
+          })
+          .catch(() => {});
+      });
+    }
+
+    window.shareTo = function(platform) {
+      const url = encodeURIComponent(window.location.href);
+      const title = encodeURIComponent(document.title);
+      if (platform === 'line') {
+        window.open(`https://social-plugins.line.me/lineit/share?url=${url}`, '_blank');
+      } else if (platform === 'fb') {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+      } else if (platform === 'threads') {
+        window.open(`https://www.threads.net/intent/post?text=${title}%20${url}`, '_blank');
+      }
+    };
+
+    window.copyPostUrl = function(btn) {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✅ 已複製網址！';
+        setTimeout(() => { btn.innerText = originalText; }, 2000);
+      });
+    };
+  </script>
+</BaseLayout>

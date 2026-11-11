@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>部落格專業管理後台 | GAVIN'S SELECT</title>
+  <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  <style>
+    /* 後台快速套用 4 大文章模板的浮動工具列 */
+    .template-helper-bar {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #3D352E;
+      color: #FAF6F0;
+      padding: 8px 16px;
+      border-radius: 30px;
+      z-index: 99999;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-family: sans-serif;
+      font-size: 13px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    }
+    .template-helper-bar button {
+      background: #E6D5C3;
+      color: #3D352E;
+      border: none;
+      padding: 5px 11px;
+      border-radius: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .template-helper-bar button:hover {
+      background: #C8AD90;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+
+  <!-- 1. 四大文章模板一鍵複製骨架工具列 (出現在後台底部) -->
+  <div class="template-helper-bar">
+    <span>📋 點擊複製預設文章排版骨架：</span>
+    <button onclick="copyTemplate('cafe')">☕ 咖啡廳食記</button>
+    <button onclick="copyTemplate('travel')">✈️ 旅遊攻略</button>
+    <button onclick="copyTemplate('hotel')">🏨 住宿開箱</button>
+    <button onclick="copyTemplate('review')">🛍️ 好物評測</button>
+    <span id="copyToast" style="color: #90EE90; font-weight: bold; display: none;">✅ 已複製！可直接貼入文章內容</span>
+  </div>
+
+  <script>
+    const templates = {
+      cafe: `## 空間環境與氛圍亮點
+
+走進店裡最吸引人的就是採光與裝潢風格，整體的座位配置非常舒適...
+
+### 必拍角落與座位區
+
+* **窗邊採光區：** 午後陽光灑落非常適合拍照。
+* **室內沙發區：** 桌距寬敞，適合聊天或帶電腦工作。
+
+## 完整菜單與價目表
+
+（這裡可以放上菜單照片或低消規定）
+
+## 今日餐點與飲品真實心得
+
+### 1. 招牌必點餐點名稱 ($價格)
+口感層次豐富，甜度適中不膩口...
+
+### 2. 手沖咖啡 / 特調飲品 ($價格)
+香氣濃郁，搭配甜點非常剛好！
+
+## 總結與訪店建議
+
+推薦給喜歡質感空間與精緻甜點的朋友，建議週末提早前往以免久候！`,
+      travel: `## 行程總覽與行前準備
+
+這次規劃的行程涵蓋了必訪景點與私房美食，交通動線順暢不繞路！
+
+### 交通方式與必備票券
+
+* **交通建議：** 
+* **建議停留時間：** 
+
+## 第一站：必訪人氣景點亮點
+
+現場風景非常壯觀，建議可以在上午時段抵達避開人潮...
+
+## 周邊順遊美食推薦
+
+逛完景點後步行即可抵達的在地人氣美食...
+
+## 旅遊小提醒與總結心得
+
+整體來說非常適合安排一日遊或多日放鬆行程！`,
+      hotel: `## 飯店位置與交通停車資訊
+
+飯店地理位置相當便利，周邊生活機能完善...
+
+## 大廳環境與公共設施開箱
+
+辦理入住的櫃檯人員親切，大廳設計充滿質感...
+
+## 房型開箱：空間、床鋪與衛浴細節
+
+### 臥室與床鋪舒適度
+採光極佳，床墊軟硬適中，隔音表現也很不錯...
+
+### 衛浴空間與備品
+乾濕分離設計，洗沐備品香氣療癒...
+
+## 早餐餐點與整體住宿評價
+
+隔天早餐種類豐富，整體 CP 值相當高！`,
+      review: `## 為什麼會入手這款好物？(痛點與需求)
+
+平常在挑選這類產品時，最在意的就是實用性、質地與真實 CP 值...
+
+## 外觀包裝與核心亮點開箱
+
+* **亮點 1：** 
+* **亮點 2：** 
+* **亮點 3：** 
+
+## 實際使用一段時間後的真實感受
+
+實際連續使用下來，最有感的地方在於...
+
+## 適合誰買？購買與團購優惠資訊
+
+如果你也有相同困擾，非常推薦趁這次團購優惠入手！`
+    };
+
+    function copyTemplate(type) {
+      navigator.clipboard.writeText(templates[type]).then(() => {
+        const toast = document.getElementById('copyToast');
+        toast.style.display = 'inline';
+        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+      });
+    }
+  </script>
+</body>
+</html>
