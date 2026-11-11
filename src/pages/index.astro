@@ -1,0 +1,126 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import siteConfig from '../data/siteConfig.json';
+
+const now = new Date();
+const posts = (await getCollection('blog'))
+  .filter(post => new Date(post.data.pubDate) <= now)
+  .sort((a, b) => {
+    if (a.data.pinned && !b.data.pinned) return -1;
+    if (!a.data.pinned && b.data.pinned) return 1;
+    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+  });
+
+const postsPerPage = siteConfig.postsPerPage || 6;
+---
+
+<BaseLayout>
+  <div id="filterStatusBanner" style="display: none; background: var(--bg-main); padding: 12px 18px; border-radius: 8px; margin-bottom: 22px; justify-content: space-between; align-items: center;">
+    <span id="filterStatusText" style="font-weight: 700;"></span>
+    <a href="/" style="font-size: 0.88rem; color: var(--milk-tea-dark); font-weight: 600;">✕ 清除篩選返回全部</a>
+  </div>
+
+  <div class="posts-list" id="postsList" data-per-page={postsPerPage}>
+    {posts.map((post) => {
+      const altText = (post.data.seo && post.data.seo.imageAlt) ? post.data.seo.imageAlt : post.data.title;
+      return (
+        <article 
+          class="post-card" 
+          data-category={post.data.category} 
+          data-tags={(post.data.tags || []).join(',')}
+        >
+          <h2 class="post-card-title">
+            {post.data.pinned && <span class="pinned-badge">📌 置頂精選</span>}
+            <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
+          </h2>
+
+          <div class="post-meta">
+            <span class="category-badge">{post.data.category}</span>
+            <span>📅 {new Date(post.data.pubDate).toLocaleDateString('zh-TW')}</span>
+            {(post.data.tags || []).map((tag) => (
+              <a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">#{tag}</a>
+            ))}
+          </div>
+
+          {post.data.heroImage && (
+            <a href={`/posts/${post.slug}/`}>
+              <img src={post.data.heroImage} alt={altText} loading="lazy" style="margin-bottom: 14px; width: 100%; max-height: 380px; object-fit: cover;" />
+            </a>
+          )}
+
+          <p style="color: var(--text-primary); margin: 0 0 12px 0;">
+            {post.data.description}
+          </p>
+
+          <a href={`/posts/${post.slug}/`} class="read-more-btn">閱讀完整文章 →</a>
+        </article>
+      );
+    })}
+  </div>
+
+  <div id="paginationBar" class="pagination-bar"></div>
+
+  <script is:inline>
+    const params = new URLSearchParams(window.location.search);
+    const selectedCategory = params.get('category');
+    const selectedTag = params.get('tag');
+    const filterBanner = document.getElementById('filterStatusBanner');
+    const filterText = document.getElementById('filterStatusText');
+    const allCards = Array.from(document.querySelectorAll('.post-card'));
+    const postsListEl = document.getElementById('postsList');
+    const paginationBar = document.getElementById('paginationBar');
+    const perPage = parseInt(postsListEl.dataset.perPage || '6', 10);
+
+    let filteredCards = allCards;
+
+    if (selectedCategory) {
+      filterBanner.style.display = 'flex';
+      filterText.innerText = `📂 目前顯示分類：「${selectedCategory}」`;
+      filteredCards = allCards.filter(c => c.dataset.category === selectedCategory);
+    } else if (selectedTag) {
+      filterBanner.style.display = 'flex';
+      filterText.innerText = `🏷️ 目前顯示標籤：「#${selectedTag}」`;
+      filteredCards = allCards.filter(c => (c.dataset.tags || '').split(',').includes(selectedTag));
+    }
+
+    function renderPage(page) {
+      allCards.forEach(c => c.style.display = 'none');
+      const totalPages = Math.ceil(filteredCards.length / perPage) || 1;
+      const start = (page - 1) * perPage;
+      const end = start + perPage;
+      filteredCards.slice(start, end).forEach(c => c.style.display = 'block');
+
+      paginationBar.innerHTML = '';
+      if (totalPages > 1) {
+        for (let i = 1; i <= totalPages; i++) {
+          const btn = document.createElement('button');
+          btn.className = 'page-btn' + (i === page ? ' active' : '');
+          btn.innerText = i;
+          btn.onclick = () => {
+            renderPage(i);
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+          };
+          paginationBar.appendChild(btn);
+        }
+      }
+    }
+
+    renderPage(1);
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', e => {
+        const keyword = e.target.value.toLowerCase().trim();
+        if (!keyword) {
+          renderPage(1);
+          return;
+        }
+        paginationBar.innerHTML = '';
+        allCards.forEach(card => {
+          card.style.display = card.innerText.toLowerCase().includes(keyword) ? 'block' : 'none';
+        });
+      });
+    }
+  </script>
+</BaseLayout>

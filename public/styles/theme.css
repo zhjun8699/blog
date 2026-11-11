@@ -1,0 +1,182 @@
+/* =========================================================
+   🎨 蓋文的部落格 v4.0 (最終完整版) — 全站樣式與排版
+   ========================================================= */
+
+:root {
+  --bg-main: #FAF6F0;
+  --bg-card: #FFFFFF;
+  --milk-tea-bg: #E6D5C3;
+  --milk-tea-dark: #C8AD90;
+  --milk-tea-banner: #D5BFA8;
+  --text-primary: #3D352E;
+  --text-muted: #7A6F66;
+  --border-color: #EFECE6;
+
+  --max-width: 1200px;
+  --sidebar-width: 340px;
+  --radius-card: 12px;
+  --radius-title: 8px;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.8;
+  margin: 0;
+  padding: 0;
+}
+
+a { color: var(--text-primary); text-decoration: none; transition: all 0.2s ease; }
+a:hover { color: var(--milk-tea-dark); }
+
+/* 防盜圖保護 */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#reading-progress-bar {
+  position: fixed; top: 0; left: 0; height: 4px;
+  background: linear-gradient(90deg, var(--milk-tea-dark), #8c6d4f);
+  width: 0%; z-index: 99999; transition: width 0.1s ease;
+}
+
+.top-announcement-bar {
+  background-color: #3D352E; color: #FAF6F0; text-align: center;
+  padding: 9px 16px; font-size: 0.9rem; font-weight: 600;
+}
+.top-announcement-bar a { color: var(--milk-tea-bg); display: inline-block; }
+.top-announcement-bar a:hover { color: #fff; text-decoration: underline; }
+
+/* 奶茶色標題底框 */
+.milk-tea-heading, .article-body h2, .article-body h3, .widget-title {
+  background-color: var(--milk-tea-bg); color: var(--text-primary);
+  padding: 10px 18px; border-radius: var(--radius-title);
+  border-left: 6px solid var(--milk-tea-dark); font-weight: 700;
+  margin: 28px 0 16px 0; letter-spacing: 0.5px; scroll-margin-top: 85px;
+}
+.article-body h3 { padding: 8px 14px; font-size: 1.15rem; border-left-width: 4px; }
+.widget-title { margin-top: 0; font-size: 1.1rem; text-align: center; border-left: none; border-bottom: 3px solid var(--milk-tea-dark); }
+
+.site-header {
+  background-color: var(--bg-card); border-bottom: 1px solid var(--border-color);
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+.nav-container {
+  max-width: var(--max-width); margin: 0 auto; padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;
+}
+.site-logo { font-size: 1.35rem; font-weight: 800; letter-spacing: 1px; color: var(--text-primary); }
+.category-nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.category-nav a { font-weight: 600; font-size: 0.96rem; padding: 5px 10px; border-radius: 6px; }
+.category-nav a:hover, .category-nav a.active { background-color: var(--milk-tea-bg); color: var(--text-primary); }
+
+.search-box input {
+  background-color: var(--bg-main); border: 1px solid var(--milk-tea-bg);
+  padding: 7px 14px; border-radius: 20px; font-size: 0.9rem; color: var(--text-primary);
+  outline: none; width: 180px; transition: width 0.2s;
+}
+.search-box input:focus { width: 220px; border-color: var(--milk-tea-dark); }
+
+.hero-banner {
+  background: linear-gradient(135deg, var(--milk-tea-banner) 0%, var(--milk-tea-bg) 100%);
+  color: var(--text-primary); text-align: center; padding: 55px 20px; margin-bottom: 35px;
+  border-bottom: 1px solid var(--border-color);
+}
+.hero-banner h1 { font-size: 2.3rem; margin: 0 0 10px 0; letter-spacing: 2.5px; font-weight: 800; }
+.hero-banner p { font-size: 1.05rem; margin: 0; letter-spacing: 1.5px; opacity: 0.9; }
+
+.main-container {
+  max-width: var(--max-width); margin: 0 auto; padding: 0 20px 50px 20px;
+  display: grid; grid-template-columns: 1fr var(--sidebar-width); gap: 35px; align-items: start;
+}
+@media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
+
+.content-column {
+  background-color: var(--bg-card); padding: 32px; border-radius: var(--radius-card);
+  box-shadow: 0 4px 15px rgba(61, 53, 46, 0.04);
+}
+
+.post-card { border-bottom: 1px solid var(--border-color); padding-bottom: 28px; margin-bottom: 28px; }
+.post-card:last-child { border-bottom: none; margin-bottom: 0; }
+.post-card-title {
+  background-color: var(--milk-tea-bg); padding: 12px 18px; border-radius: var(--radius-title);
+  border-left: 6px solid var(--milk-tea-dark); margin: 0 0 12px 0; font-size: 1.32rem;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.pinned-badge { background-color: #3D352E; color: #FAF6F0; font-size: 0.78rem; padding: 3px 9px; border-radius: 20px; font-weight: 700; }
+.post-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px; }
+.category-badge { background-color: var(--milk-tea-dark); color: #fff; padding: 2px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+.tag-pill { background-color: var(--bg-main); color: var(--text-muted); border: 1px solid var(--milk-tea-bg); padding: 2px 9px; border-radius: 14px; font-size: 0.78rem; cursor: pointer; }
+.tag-pill:hover { background-color: var(--milk-tea-bg); color: var(--text-primary); }
+
+.read-more-btn {
+  display: inline-block; background-color: var(--milk-tea-bg); color: var(--text-primary);
+  font-weight: 600; padding: 8px 18px; border-radius: 6px; margin-top: 10px; font-size: 0.92rem;
+}
+.read-more-btn:hover { background-color: var(--milk-tea-dark); color: #fff; }
+
+.toc-box { background-color: var(--bg-main); border: 1px solid var(--milk-tea-bg); border-radius: 10px; padding: 16px 20px; margin: 20px 0 26px 0; }
+.toc-box summary { font-weight: 700; font-size: 1.05rem; cursor: pointer; color: var(--text-primary); outline: none; }
+.toc-list { margin: 12px 0 0 0; padding-left: 20px; }
+.toc-list li { margin-bottom: 6px; }
+.toc-list li.toc-h3 { margin-left: 18px; font-size: 0.92rem; }
+.toc-list a:hover { text-decoration: underline; color: #8c6d4f; }
+
+.place-info-card { background-color: var(--bg-main); border: 2px solid var(--milk-tea-bg); border-radius: 12px; padding: 22px; margin: 30px 0; }
+.place-info-title { background-color: var(--milk-tea-bg); padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 1.15rem; margin: 0 0 14px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.place-info-list { list-style: none; padding: 0; margin: 0; font-size: 0.95rem; }
+.place-info-list li { margin-bottom: 8px; }
+.map-btn { display: inline-block; margin-top: 10px; background-color: #3D352E; color: #fff !important; padding: 7px 15px; border-radius: 6px; font-size: 0.88rem; font-weight: 600; }
+
+.promo-product-card {
+  display: grid; grid-template-columns: 180px 1fr; gap: 22px;
+  background: linear-gradient(135deg, #FAF6F0 0%, #F3ECE1 100%);
+  border: 2px solid var(--milk-tea-dark); border-radius: 12px; padding: 22px; margin: 30px 0; align-items: center;
+}
+@media (max-width: 650px) { .promo-product-card { grid-template-columns: 1fr; text-align: center; } }
+.promo-price { font-size: 1.25rem; font-weight: 800; color: #B85D3B; margin: 6px 0; }
+.promo-buy-btn {
+  display: inline-block; background-color: #3D352E; color: #FAF6F0 !important;
+  padding: 10px 22px; border-radius: 8px; font-weight: 700; margin-top: 10px;
+}
+.promo-buy-btn:hover { background-color: var(--milk-tea-dark); color: #3D352E !important; }
+
+.share-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 24px 0; padding: 14px 18px; background-color: var(--bg-main); border-radius: 8px; }
+.share-btn { border: none; padding: 7px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer; color: #fff !important; display: inline-flex; align-items: center; gap: 5px; }
+.share-line { background-color: #06C755; }
+.share-fb { background-color: #1877F2; }
+.share-threads { background-color: #000000; }
+.share-copy { background-color: var(--milk-tea-dark); color: #3D352E !important; }
+
+.related-posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-top: 16px; }
+.related-card { background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
+.related-card h4 { margin: 8px 0 4px 0; font-size: 0.98rem; }
+
+.pagination-bar { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 32px; }
+.page-btn { background-color: var(--bg-main); border: 1px solid var(--milk-tea-bg); color: var(--text-primary); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.page-btn.active, .page-btn:hover { background-color: var(--milk-tea-dark); color: #fff; }
+
+.sidebar-column { display: flex; flex-direction: column; gap: 28px; }
+.widget-card { background-color: var(--bg-card); padding: 24px; border-radius: var(--radius-card); box-shadow: 0 4px 15px rgba(61, 53, 46, 0.04); }
+.profile-avatar { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; display: block; margin: 15px auto; border: 3px solid var(--milk-tea-bg); }
+.ig-follow-btn { display: block; text-align: center; background: linear-gradient(45deg, #c8ad90, #b39374); color: #fff !important; font-weight: 700; padding: 11px 16px; border-radius: 8px; margin-top: 14px; }
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.ad-slot { background-color: var(--bg-main); border: 1px dashed var(--milk-tea-dark); border-radius: 8px; padding: 18px; text-align: center; margin: 24px 0; color: var(--text-muted); font-size: 0.9rem; }
+
+#backToTopBtn {
+  position: fixed; bottom: 85px; right: 24px; width: 44px; height: 44px; border-radius: 50%;
+  background-color: var(--milk-tea-dark); color: #fff; border: none; font-size: 1.2rem; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; align-items: center; justify-content: center; z-index: 9990;
+}
+#backToTopBtn:hover { background-color: #3D352E; }
+
+.site-footer { text-align: center; padding: 30px 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem; background-color: var(--bg-card); }
