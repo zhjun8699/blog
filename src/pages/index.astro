@@ -49,7 +49,6 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
   const altText = (post.data.seo && post.data.seo.imageAlt) ? post.data.seo.imageAlt : post.data.title;
   const views = post.data.baseViews || 5280;
   const fiveLines = getFirst5Lines(post.body, post.data.description);
-  const tags = (post.data.tags || []).slice(0, 8);
 
   return (
     <article 
@@ -70,7 +69,7 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
         <span class="views-badge" style="background: #FAF3EB; color: #9C7A54; border: 1px solid #E6D5C3; padding: 2px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">
           🔥 <span class="card-view-count" data-slug={post.slug} data-base={views}>{views.toLocaleString()}</span> 次觀看
         </span>
-        {tags.map((tag: string) => (
+        {(post.data.tags || []).map((tag: string) => (
           <a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">#{tag}</a>
         ))}
       </div>
@@ -102,7 +101,6 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
 <div id="paginationBar" class="pagination-bar" style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 28px;"></div>
 
 <script is:inline>
-// 1. 同步更新每張文章卡片的觀看人數 (5000+ 起跳加上瀏覽累加)
 document.querySelectorAll('.card-view-count').forEach((el) => {
   const slug = el.getAttribute('data-slug');
   const base = parseInt(el.getAttribute('data-base') || '5280', 10);
@@ -110,7 +108,6 @@ document.querySelectorAll('.card-view-count').forEach((el) => {
   el.textContent = (base + extra).toLocaleString();
 });
 
-// 2. 分類、標籤篩選與智慧縮略分頁器
 const params = new URLSearchParams(window.location.search);
 const selectedCategory = params.get('category');
 const selectedTag = params.get('tag');
@@ -160,10 +157,8 @@ function renderPage(page) {
       return btn;
     };
 
-    // 上一頁
     paginationBar.appendChild(createBtn('‹ 上一頁', page - 1, false, page === 1));
 
-    // 智慧縮略頁碼（最多顯示首尾頁與當前頁前後 1 頁，中間以 ⋯ 縮略，絕不整排擠爆）
     const pageList = [];
     for (let i = 1; i <= totalPages; i++) {
       if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
@@ -186,7 +181,6 @@ function renderPage(page) {
       }
     });
 
-    // 下一頁
     paginationBar.appendChild(createBtn('下一頁 ›', page + 1, false, page === totalPages));
   }
 }

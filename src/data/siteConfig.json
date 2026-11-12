@@ -1,190 +1,48 @@
-backend:
-  name: git-gateway
-  branch: main
-
-media_folder: "public/images/uploads"
-public_folder: "/images/uploads"
-
-locale: "zh_Hant"
-
-collections:
-  - name: "blog"
-    label: "📝 部落格文章管理 (含4大模板與SEO)"
-    label_singular: "文章"
-    folder: "src/content/blog"
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    summary: "{{title}} ({{pubDate}} | {{category}})"
-    fields:
-      - label: "📋 快速套用文章排版模板 (切換將自動帶入下方內文框架)"
-        name: "templateType"
-        widget: "select"
-        required: false
-        options:
-          - { label: "✨ 不套用模板（自由發揮）", value: "none" }
-          - { label: "🍜 模板一：美味食記探店模板", value: "food" }
-          - { label: "✈️ 模板二：國內外旅遊攻略模板", value: "travel" }
-          - { label: "🏨 模板三：質感住宿開箱模板", value: "stay" }
-          - { label: "🛍️ 模板四：質感好物 / 保養開箱模板", value: "product" }
-        default: "none"
-
-      - label: "📌 置頂此篇文章 (打勾後將優先固定於首頁第一篇)"
-        name: "pinned"
-        widget: "boolean"
-        default: false
-        required: false
-
-      - label: "🙈 設為草稿 (打勾後前台將自動隱藏)"
-        name: "draft"
-        widget: "boolean"
-        default: false
-        required: false
-
-      - label: "📌 文章標題"
-        name: "title"
-        widget: "string"
-
-      - label: "📂 文章分類"
-        name: "category"
-        widget: "select"
-        options:
-          - "台灣美食"
-          - "國內外旅遊"
-          - "質感保養"
-          - "好物開箱"
-          - "好物團購"
-        default: "台灣美食"
-
-      - label: "📅 發布日期 (若設定未來日期，時間到才會自動顯示)"
-        name: "pubDate"
-        widget: "datetime"
-        format: "YYYY-MM-DD"
-        date_format: "YYYY-MM-DD"
-        time_format: false
-
-      - label: "🖼️ 文章首圖 / 封面照片 (建議尺寸：寬 1000～1200 px，直式或橫式皆可 100% 完整顯示)"
-        name: "heroImage"
-        widget: "image"
-        required: false
-        hint: "📐【上傳尺寸建議】建議寬度 1000～1200 px（直式、橫式或正方形皆可，前台首頁將 100% 完整顯示整張照片不裁切！）"
-
-      - label: "📝 文章簡短摘要 (選填，首頁將自動擷取內文前 5 行顯示)"
-        name: "description"
-        widget: "text"
-        required: false
-
-      - label: "🔥 初始觀看次數 (預設 5000+ 起跳)"
-        name: "baseViews"
-        widget: "number"
-        default: 5680
-        value_type: "int"
-        min: 0
-
-      - label: "🏷️ 文章標籤 (Tags)"
-        name: "tags"
-        widget: "list"
-        required: false
-        default: ["台中美食", "開箱分享"]
-
-      - label: "✍️ 文章完整內文 (Pages / Word 視覺化編輯器)"
-        name: "body"
-        widget: "richtext"
-
-  - name: "settings"
-    label: "🎨 修改版面 / 圖片 / 分類設定"
-    files:
-      - name: "siteConfig"
-        label: "⚙️ 全站外觀、Logo、Banner、跑馬燈、側邊欄與個人資訊"
-        file: "src/data/siteConfig.json"
-        fields:
-          - label: "🏠 網站主標題"
-            name: "title"
-            widget: "string"
-            required: false
-            default: "哪裏。DOKO"
-
-          - label: "✨ 網站副標題 (選填)"
-            name: "subtitle"
-            widget: "string"
-            required: false
-            default: "Travel。Eat。Beauty｜美食情報・旅遊・開箱分享"
-
-          - label: "📢 頂部跑馬燈公告文字 (選填，留空則不顯示跑馬燈)"
-            name: "marqueeText"
-            widget: "string"
-            required: false
-            hint: "💡 輸入顯示於全站最頂端的動態跑馬燈文字（若你的版面使用 marquee 欄位，請同步填寫於下方備用欄）。"
-
-          - label: "🔗 頂部跑馬燈點擊跳轉連結 (選填)"
-            name: "marqueeLink"
-            widget: "string"
-            required: false
-            hint: "💡 點擊跑馬燈時要前往的網址（例如團購連結、IG 貼文或指定文章網址，留空則純顯示文字不跳轉）。"
-
-          - label: "🖼️ 網站左上角 Logo 圖片 (建議尺寸：200 × 200 px 正方形，或 240 × 80 px 橫式透明 PNG) (選填)"
-            name: "logo"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】正方形 Logo 請上傳 200 × 200 px（1:1）；橫式 Logo 請上傳 240 × 80 px（請使用 PNG、JPG 或 WebP 格式）。"
-
-          - label: "🏞️ 首頁頂部大橫幅 Banner 圖片 (建議尺寸：1920 × 450 px 或 1200 × 320 px 橫式長圖) (選填)"
-            name: "banner"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】最佳尺寸為 1920 × 450 px 或 1200 × 320 px（比例約 4:1 的橫式寬幅圖），檔案建議 1MB 以內。"
-
-          - label: "👤 側邊欄個人圓形頭像 (建議尺寸：400 × 400 px 正方形 1:1) (選填)"
-            name: "avatar"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】請上傳 400 × 400 px（1:1 正方形）的清晰人像或品牌圖，前台會自動裁切為圓形頭像。"
-
-          - label: "📛 側邊欄作者名稱"
-            name: "authorName"
-            widget: "string"
-            required: false
-            default: "哪裏。DOKO"
-
-          - label: "💬 側邊欄個人簡介"
-            name: "bio"
-            widget: "text"
-            required: false
-
-          - label: "📩 合作邀約聯絡信箱"
-            name: "email"
-            widget: "string"
-            required: false
-            default: "k81928@gmail.com"
-
-          - label: "📸 Instagram 個人主頁連結"
-            name: "instagram"
-            widget: "string"
-            required: false
-
-          - label: "👍 Facebook 粉絲專頁連結 (選填)"
-            name: "facebook"
-            widget: "string"
-            required: false
-
-          - label: "📣 側邊欄廣告圖片 (建議尺寸：600 × 600 px 正方形 或 600 × 800 px 直式圖) (選填)"
-            name: "adImage"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】寬度建議 600 px（正方形 600 × 600 px 或直式 600 × 800 px 皆可完美自適應）。"
-
-          - label: "🔗 側邊欄廣告點擊跳轉網址 (選填)"
-            name: "adLink"
-            widget: "string"
-            required: false
-
-          - label: "📄 首頁每頁顯示文章數量"
-            name: "postsPerPage"
-            widget: "number"
-            default: 6
-            value_type: "int"
-
-          - label: "🗂️ 網站文章分類清單"
-            name: "categories"
-            widget: "list"
-            required: false
-            default: ["台灣美食", "國內外旅遊", "質感保養", "好物開箱", "好物團購"]
+{
+  "postsPerPage": 6,
+  "announcement": {
+    "enabled": true,
+    "text": "✨ 歡迎來到 哪裏。DOKO！最新美食探店、國內外旅遊攻略與質感好物開箱持續更新中～ 合作邀約歡迎來信：k81928@gmail.com ✨",
+    "link": "https://www.instagram.com/chun._.1997/"
+  },
+  "header": {
+    "logoText": "哪裏。DOKO",
+    "logoImage": "",
+    "favicon": "",
+    "bannerTitle": "哪裏。DOKO",
+    "bannerSubtitle": "Travel。Eat。Beauty 喜歡新鮮，熱愛體驗，勇於探索，樂於分享。",
+    "bannerBgImage": ""
+  },
+  "categories": [
+    {
+      "name": "台灣美食"
+    },
+    {
+      "name": "國內外旅遊"
+    },
+    {
+      "name": "質感保養"
+    },
+    {
+      "name": "好物開箱"
+    },
+    {
+      "name": "好物團購"
+    }
+  ],
+  "sidebar": {
+    "profileTitle": "關於 哪裏。DOKO",
+    "avatar": "https://pimg.1px.tw/blog/zhjun8699/logo/844863945586290081.webp",
+    "bio": "Hi！歡迎來到我的部落格！\n熱愛發掘各地美食、旅遊景點與質感生活好物，分享最真實紀錄！",
+    "contactNote": "📩 合作邀約歡迎來信：k81928@gmail.com 或私訊 IG 小盒子",
+    "igAccount": "chun._.1997",
+    "showIgFeed": true,
+    "showSidebarAd": true,
+    "sidebarAdContent": "<div style='background:#FAF6F0;border:1px dashed #C8AD90;border-radius:10px;padding:16px;text-align:center;color:#5C5046;font-size:0.9rem;line-height:1.7;'><strong>✨ 哪裏。DOKO 合作專區 ✨</strong><br/>美食探店・旅遊體驗・質感好物開箱<br/>合作信箱：<a href='mailto:k81928@gmail.com' style='color:#9C7A54;font-weight:700;'>k81928@gmail.com</a></div>"
+  },
+  "colors": {
+    "bgMain": "#FAF6F0",
+    "milkTeaBg": "#E6D5C3",
+    "milkTeaDark": "#9C7A54"
+  }
+}

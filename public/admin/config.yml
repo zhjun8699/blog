@@ -66,7 +66,7 @@ collections:
         name: "heroImage"
         widget: "image"
         required: false
-        hint: "📐【上傳尺寸建議】建議寬度 1000～1200 px（直式、橫式或正方形皆可，前台首頁將 100% 完整顯示整張照片不裁切！）"
+        hint: "📐【上傳尺寸建議】建議寬度 1000～1200 px（直式、橫式或正方形皆可，前台首頁將 100% 完整顯示整張照片不裁切！請使用英文或數字檔名，如 cover-1.png）"
 
       - label: "📝 文章簡短摘要 (選填，首頁將自動擷取內文前 5 行顯示)"
         name: "description"
@@ -86,6 +86,17 @@ collections:
         required: false
         default: ["台中美食", "開箱分享"]
 
+      - label: "🔍 SEO 進階設定 (選填)"
+        name: "seo"
+        widget: "object"
+        collapsed: true
+        required: false
+        fields:
+          - { label: "圖片替代文字 (Image Alt)", name: "imageAlt", widget: "string", required: false }
+          - { label: "自訂 SEO 標題", name: "seoTitle", widget: "string", required: false }
+          - { label: "自訂 SEO 描述", name: "seoDescription", widget: "text", required: false }
+          - { label: "社群分享縮圖 (OG Image)", name: "ogImage", widget: "image", required: false }
+
       - label: "✍️ 文章完整內文 (Pages / Word 視覺化編輯器)"
         name: "body"
         widget: "richtext"
@@ -93,69 +104,116 @@ collections:
   - name: "settings"
     label: "🎨 修改版面 / 圖片 / 分類設定"
     files:
-      - name: "siteConfig"
-        label: "⚙️ 全站外觀、Logo、Banner、側邊欄與個人資訊"
+      - name: "site_config"
+        label: "⚙️ 全站外觀、Logo、Banner、跑馬燈、側邊欄與顏色設定"
         file: "src/data/siteConfig.json"
         fields:
-          - label: "🏠 網站主標題"
-            name: "siteTitle"
-            widget: "string"
-            required: false
-            default: "哪裏。DOKO"
-
-          - label: "✨ 網站副標題"
-            name: "siteSubtitle"
-            widget: "string"
-            required: false
-            default: "Travel。Eat。Beauty｜美食情報・旅遊・開箱分享"
-
-          - label: "📢 頂部跑馬燈公告文字"
-            name: "marqueeText"
-            widget: "string"
-            required: false
-
-          - label: "🖼️ 網站左上角 Logo 圖片 (建議尺寸：200 × 200 px 正方形，或 240 × 80 px 橫式透明 PNG)"
-            name: "logoImage"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】正方形 Logo 請上傳 200 × 200 px（1:1）；橫式 Logo 請上傳 240 × 80 px（透明背景 PNG 或 JPG 皆可）。"
-
-          - label: "🏞️ 首頁頂部大橫幅 Banner 圖片 (建議尺寸：1920 × 450 px 或 1200 × 320 px 橫式長圖)"
-            name: "bannerImage"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】最佳尺寸為 1920 × 450 px 或 1200 × 320 px（比例約 4:1 的橫式寬幅圖），檔案建議 1MB 以內。"
-
-          - label: "👤 側邊欄個人圓形頭像 (建議尺寸：400 × 400 px 正方形 1:1)"
-            name: "authorAvatar"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】請上傳 400 × 400 px（1:1 正方形）的清晰人像或品牌圖，前台會自動裁切為圓形頭像。"
-
-          - label: "📛 側邊欄作者名稱"
-            name: "authorName"
-            widget: "string"
-            required: false
-            default: "哪裏。DOKO"
-
-          - label: "💬 側邊欄個人簡介"
-            name: "authorBio"
-            widget: "text"
-            required: false
-
-          - label: "📸 Instagram 連結"
-            name: "instagramUrl"
-            widget: "string"
-            required: false
-
-          - label: "📣 側邊欄廣告圖片 (建議尺寸：600 × 600 px 正方形 或 600 × 800 px 直式圖)"
-            name: "adImage"
-            widget: "image"
-            required: false
-            hint: "📐【上傳尺寸建議】寬度建議 600 px（正方形 600 × 600 px 或直式 600 × 800 px 皆可完美自適應）。"
-
-          - label: "📄 首頁每頁顯示文章數量"
+          - label: "📄 首頁每頁顯示文章篇數"
             name: "postsPerPage"
             widget: "number"
             default: 6
             value_type: "int"
+
+          - label: "📢 頂部動態跑馬燈設定 (Announcement)"
+            name: "announcement"
+            widget: "object"
+            fields:
+              - label: "✅ 啟用頂部跑馬燈"
+                name: "enabled"
+                widget: "boolean"
+                default: true
+              - label: "📝 跑馬燈顯示文字"
+                name: "text"
+                widget: "string"
+                required: false
+              - label: "🔗 跑馬燈點擊跳轉連結 (選填，留空則純顯示文字)"
+                name: "link"
+                widget: "string"
+                required: false
+                hint: "💡 可填入團購網址、IG 連結或文章網址，訪客點擊跑馬燈文字即可直接前往！"
+
+          - label: "🖼️ 網站頂部 Logo 與橫幅 Banner 設定 (Header)"
+            name: "header"
+            widget: "object"
+            fields:
+              - label: "🔤 導覽列左上角 Logo 文字 (當未上傳 Logo 圖片時顯示)"
+                name: "logoText"
+                widget: "string"
+                default: "哪裏。DOKO"
+              - label: "🖼️ 導覽列左上角 Logo 圖片 (建議尺寸：高 84 px × 寬 240 px 內橫式透明 PNG，或 200 × 200 px 正方形)"
+                name: "logoImage"
+                widget: "image"
+                required: false
+                hint: "📐【上傳尺寸建議】前台顯示高度固定為 42px（2倍高清建議高 84px、寬 84～260px 的透明去背 PNG）。⚠️ 請務必將電腦圖片檔名改為「純英文或數字」（例如 logo.png），勿使用中文或空白檔名以免預覽破圖！"
+              - label: "🌟 瀏覽器分頁小圖示 Favicon (建議尺寸：64 × 64 px 或 128 × 128 px 正方形 PNG)"
+                name: "favicon"
+                widget: "image"
+                required: false
+                hint: "📐【上傳尺寸建議】建議上傳 64 × 64 px 或 128 × 128 px（1:1 正方形 PNG），顯示於瀏覽器網址列分頁旁。"
+              - label: "🏠 首頁橫幅大標題 (Banner Title)"
+                name: "bannerTitle"
+                widget: "string"
+                default: "哪裏。DOKO"
+              - label: "✨ 首頁橫幅副標題 (Banner Subtitle)"
+                name: "bannerSubtitle"
+                widget: "string"
+                required: false
+              - label: "🏞️ 首頁頂部大橫幅 Banner 背景圖 (建議尺寸：1920 × 450 px 或 1440 × 360 px 橫式寬幅圖)"
+                name: "bannerBgImage"
+                widget: "image"
+                required: false
+                hint: "📐【上傳尺寸建議】最佳尺寸為 1920 × 450 px 或 1440 × 360 px（比例約 4:1 的橫式風景/美食圖），檔案大小建議 1MB 以內。⚠️ 檔名請用純英文數字（如 banner.jpg）。"
+
+          - label: "🗂️ 頂部導覽列文章分類選單"
+            name: "categories"
+            widget: "list"
+            fields:
+              - { label: "分類名稱", name: "name", widget: "string" }
+
+          - label: "👤 右側邊欄：個人簡介、IG 動態與廣告區 (Sidebar)"
+            name: "sidebar"
+            widget: "object"
+            fields:
+              - label: "📌 個人簡介區塊標題"
+                name: "profileTitle"
+                widget: "string"
+                default: "關於 哪裏。DOKO"
+              - label: "👤 側邊欄個人圓形頭像 (建議尺寸：400 × 400 px 正方形 1:1)"
+                name: "avatar"
+                widget: "image"
+                required: false
+                hint: "📐【上傳尺寸建議】請上傳 400 × 400 px（1:1 正方形）清晰照片，前台會自動裁切為圓形頭像。⚠️ 檔名請用純英文數字（如 avatar.png）。"
+              - label: "💬 個人自我介紹文字 (支援換行)"
+                name: "bio"
+                widget: "text"
+                required: false
+              - label: "📩 合作邀約備註欄 (顯示於自我介紹下方)"
+                name: "contactNote"
+                widget: "string"
+                required: false
+              - label: "📸 Instagram 帳號 ID (不含 @，例如：chun._.1997)"
+                name: "igAccount"
+                widget: "string"
+                required: false
+                default: "chun._.1997"
+              - label: "📱 在側邊欄顯示 Instagram 最新動態嵌入牆"
+                name: "showIgFeed"
+                widget: "boolean"
+                default: true
+              - label: "📣 在側邊欄顯示「精選推薦 / 廣告」區塊"
+                name: "showSidebarAd"
+                widget: "boolean"
+                default: true
+              - label: "🪧 側邊欄廣告區內容 (支援 HTML 或圖片語法，建議圖片尺寸：寬 600 px 正方形或直式圖)"
+                name: "sidebarAdContent"
+                widget: "text"
+                required: false
+                hint: "📐【尺寸建議】若放入廣告圖片，建議寬度 600 × 600 px（正方形）或 600 × 800 px（直式）。"
+
+          - label: "🎨 網站奶茶色系主題配色 (Colors)"
+            name: "colors"
+            widget: "object"
+            fields:
+              - { label: "網頁主背景色 (預設 #FAF6F0)", name: "bgMain", widget: "string", default: "#FAF6F0" }
+              - { label: "奶茶色淺底色 (預設 #E6D5C3)", name: "milkTeaBg", widget: "string", default: "#E6D5C3" }
+              - { label: "奶茶色深強調色 (預設 #9C7A54)", name: "milkTeaDark", widget: "string", default: "#9C7A54" }
