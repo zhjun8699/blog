@@ -7,7 +7,6 @@
   <title>部落格專業管理後台 | GAVIN'S SELECT</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <style>
-    /* 讓後台編輯器像 Word 一樣舒適，直接呈現淺米色與奶茶色標題 */
     [data-slate-editor="true"] {
       font-family: "PingFang TC", "Microsoft JhengHei", sans-serif !important;
       font-size: 16px !important;
@@ -72,10 +71,8 @@
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
     if (window.CMS) {
-      // 1. 載入前台樣式到右側預覽視窗
       CMS.registerPreviewStyle("/styles/theme.css");
 
-      // 2. 在編輯器「＋」號選單新增【🎨 文字顏色】功能 (含自由調色盤)
       CMS.registerEditorComponent({
         id: "color-text",
         label: "🎨 單獨改文字顏色",
@@ -104,7 +101,6 @@
         }
       });
 
-      // 3. 在編輯器「＋」號選單新增【🖍️ 螢光筆畫重點】功能
       CMS.registerEditorComponent({
         id: "highlight-text",
         label: "🖍️ 螢光筆底色畫重點",
@@ -133,7 +129,6 @@
         }
       });
 
-      // 4. 註冊繁體中文介面與部署按鈕文字
       CMS.registerLocale('zh_Hant', {
         app: {
           header: {
@@ -198,7 +193,6 @@
     }
   </script>
 
-  <!-- 底部快速排版、文字改色與 4 大模板工具列 -->
   <div class="template-helper-bar">
     <span>📋 模板骨架：</span>
     <button onclick="copyTemplate('cafe')">☕ 食記</button>
@@ -234,7 +228,6 @@
       });
     }
 
-    // 讓使用者輸入或反白文字後一鍵產生彩色字語法
     function insertColorTag(color) {
       const selected = window.getSelection().toString() || prompt('請輸入想變成彩色重點的文字：', '重點優惠文字');
       if (!selected) return;
