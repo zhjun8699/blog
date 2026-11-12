@@ -6,6 +6,8 @@ const blog = defineCollection({
     title: z.string(),
     description: z.string(),
     pubDate: z.coerce.date(),
+    draft: z.boolean().optional().default(false),
+    baseViews: z.number().optional().default(5000),
     pinned: z.boolean().optional().default(false),
     category: z.string().default('台灣美食'),
     templateType: z.string().optional().default('一般文章'),
