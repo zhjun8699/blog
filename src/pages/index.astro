@@ -1,126 +1,611 @@
 ---
 import { getCollection } from 'astro:content';
-import BaseLayout from '../layouts/BaseLayout.astro';
 import siteConfig from '../data/siteConfig.json';
+import '../styles/theme.css';
 
-const now = new Date();
-const posts = (await getCollection('blog'))
-  .filter(post => !post.data.draft && new Date(post.data.pubDate) <= now)
-  .sort((a, b) => {
-    if (a.data.pinned && !b.data.pinned) return -1;
-    if (!a.data.pinned && b.data.pinned) return 1;
-    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
-  });
+const allPosts = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
 
-const postsPerPage = siteConfig.postsPerPage || 6;
+const posts = allPosts.sort(
+  (a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
+);
+
+// 自動從文章原始內容萃取「前 5 行文字」，保留換行與原本的閱讀節奏
+function getFirst5Lines(body: string, fallbackDesc: string) {
+  if (!body) return fallbackDesc || '';
+  let text = body
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&');
+
+  let lines = text
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0 && !l.startsWith('!['))
+    .slice(0, 5);
+
+  return lines.length > 0 ? lines.join('\n') : (fallbackDesc || '');
+}
+
+const categories = siteConfig.categories || [
+  { name: "台灣美食", slug: "台灣美食" },
+  { name: "國內外旅遊", slug: "旅遊攻略" },
+  { name: "質感保養", slug: "質感住宿" },
+  { name: "好物開箱", slug: "好物開箱" },
+  { name: "好物團購", slug: "好物團購" }
+];
 ---
 
-<BaseLayout>
-  <div id="filterStatusBanner" style="display: none; background: var(--bg-main); padding: 12px 18px; border-radius: 8px; margin-bottom: 22px; justify-content: space-between; align-items: center;">
-    <span id="filterStatusText" style="font-weight: 700;"></span>
-    <a href="/" style="font-size: 0.88rem; color: var(--milk-tea-dark); font-weight: 600;">✕ 清除篩選返回全部</a>
-  </div>
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
+    <title>{siteConfig.siteTitle} | {siteConfig.siteSubtitle}</title>
+    <meta name="description" content={siteConfig.siteDescription} />
+    <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+        background-color: #FAF6F0;
+        color: #3D352E;
+        overflow-x: hidden;
+      }
 
-  <div class="posts-list" id="postsList" data-per-page={postsPerPage}>
-    {posts.map((post) => {
-      const altText = (post.data.seo && post.data.seo.imageAlt) ? post.data.seo.imageAlt : post.data.title;
-      return (
-        <article 
-          class="post-card" 
-          data-category={post.data.category} 
-          data-tags={(post.data.tags || []).join(',')}
-        >
-          <h2 class="post-card-title">
-            {post.data.pinned && <span class="pinned-badge">📌 置頂精選</span>}
-            <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
-          </h2>
+      /* 頂部導覽列 */
+      .site-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #E6D5C3;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 14px 24px;
+      }
+      .header-inner {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .brand-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        color: #3D352E;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 1px;
+      }
+      .brand-logo img {
+        height: 40px;
+        width: auto;
+        border-radius: 8px;
+        object-fit: contain;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .nav-btn {
+        background: transparent;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #5C5046;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .nav-btn:hover, .nav-btn.active {
+        background: #E6D5C3;
+        color: #3D352E;
+      }
+      .search-box input {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid #D5C3B0;
+        background: #FAF6F0;
+        font-size: 14px;
+        width: 210px;
+        outline: none;
+      }
 
-          <div class="post-meta">
-            <span class="category-badge">{post.data.category}</span>
-            <span>📅 {new Date(post.data.pubDate).toLocaleDateString('zh-TW')}</span>
-            {(post.data.tags || []).map((tag) => (
-              <a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">#{tag}</a>
-            ))}
-          </div>
-
-          {post.data.heroImage && (
-            <a href={`/posts/${post.slug}/`}>
-              <img src={post.data.heroImage} alt={altText} loading="lazy" style="margin-bottom: 14px; width: 100%; max-height: 380px; object-fit: cover;" />
-            </a>
-          )}
-
-          <p style="color: var(--text-primary); margin: 0 0 12px 0;">
-            {post.data.description}
-          </p>
-
-          <a href={`/posts/${post.slug}/`} class="read-more-btn">閱讀完整文章 →</a>
-        </article>
-      );
-    })}
-  </div>
-
-  <div id="paginationBar" class="pagination-bar"></div>
-
-  <script is:inline>
-    const params = new URLSearchParams(window.location.search);
-    const selectedCategory = params.get('category');
-    const selectedTag = params.get('tag');
-    const filterBanner = document.getElementById('filterStatusBanner');
-    const filterText = document.getElementById('filterStatusText');
-    const allCards = Array.from(document.querySelectorAll('.post-card'));
-    const postsListEl = document.getElementById('postsList');
-    const paginationBar = document.getElementById('paginationBar');
-    const perPage = parseInt(postsListEl.dataset.perPage || '6', 10);
-
-    let filteredCards = allCards;
-
-    if (selectedCategory) {
-      filterBanner.style.display = 'flex';
-      filterText.innerText = `📂 目前顯示分類：「${selectedCategory}」`;
-      filteredCards = allCards.filter(c => c.dataset.category === selectedCategory);
-    } else if (selectedTag) {
-      filterBanner.style.display = 'flex';
-      filterText.innerText = `🏷️ 目前顯示標籤：「#${selectedTag}」`;
-      filteredCards = allCards.filter(c => (c.dataset.tags || '').split(',').includes(selectedTag));
-    }
-
-    function renderPage(page) {
-      allCards.forEach(c => c.style.display = 'none');
-      const totalPages = Math.ceil(filteredCards.length / perPage) || 1;
-      const start = (page - 1) * perPage;
-      const end = start + perPage;
-      filteredCards.slice(start, end).forEach(c => c.style.display = 'block');
-
-      paginationBar.innerHTML = '';
-      if (totalPages > 1) {
-        for (let i = 1; i <= totalPages; i++) {
-          const btn = document.createElement('button');
-          btn.className = 'page-btn' + (i === page ? ' active' : '');
-          btn.innerText = i;
-          btn.onclick = () => {
-            renderPage(i);
-            window.scrollTo({ top: 300, behavior: 'smooth' });
-          };
-          paginationBar.appendChild(btn);
+      /* 主版面：嚴格鎖定左欄與右欄寬度，絕不跑版 */
+      .main-layout {
+        max-width: 1180px;
+        margin: 32px auto 60px;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 310px;
+        gap: 32px;
+        align-items: start;
+      }
+      @media (max-width: 960px) {
+        .main-layout {
+          grid-template-columns: 1fr;
         }
       }
-    }
 
-    renderPage(1);
+      /* 文章卡片 */
+      .posts-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+      .post-card {
+        background: #FFFFFF;
+        border-radius: 18px;
+        border: 1px solid #EFE6DD;
+        padding: 28px 32px;
+        box-shadow: 0 4px 20px rgba(61, 53, 46, 0.04);
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+      }
+      @media (max-width: 640px) {
+        .post-card { padding: 20px 18px; }
+      }
+      .post-card:hover {
+        box-shadow: 0 8px 28px rgba(61, 53, 46, 0.08);
+      }
 
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-      searchInput.addEventListener('input', e => {
-        const keyword = e.target.value.toLowerCase().trim();
-        if (!keyword) {
-          renderPage(1);
-          return;
+      /* 奶茶色左邊框大標題 */
+      .post-title-box {
+        background: #F4ECE4;
+        border-left: 5px solid #C8AD90;
+        padding: 14px 20px;
+        border-radius: 8px;
+        margin-bottom: 14px;
+      }
+      .post-title-box h2 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.55;
+        font-weight: 700;
+        word-break: break-word;
+      }
+      .post-title-box a {
+        color: #3D352E;
+        text-decoration: none;
+      }
+      .post-title-box a:hover {
+        color: #9C7A54;
+      }
+
+      /* 分類、日期、觀看人數與標籤列 */
+      .post-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+        font-size: 13px;
+        color: #7A6E65;
+      }
+      .cat-badge {
+        background: #C8AD90;
+        color: #FFFFFF;
+        padding: 4px 11px;
+        border-radius: 6px;
+        font-weight: 600;
+      }
+      .views-badge {
+        background: #FAF3EB;
+        color: #9C7A54;
+        border: 1px solid #E6D5C3;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+      }
+      .tag-pill {
+        background: #FAF6F0;
+        border: 1px solid #E6D5C3;
+        color: #6E6259;
+        padding: 2px 9px;
+        border-radius: 12px;
+        font-size: 12px;
+      }
+
+      /* 首圖：100% 完整顯示原圖比例，絕不卡一半！ */
+      .post-thumb-link {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0 auto 22px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: transparent;
+      }
+      .post-thumb-link img {
+        display: block;
+        max-width: 100%;
+        width: auto;
+        max-height: 520px;
+        height: auto;
+        object-fit: contain;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(61, 53, 46, 0.06);
+        transition: transform 0.3s ease;
+      }
+      .post-thumb-link:hover img {
+        transform: scale(1.015);
+      }
+
+      /* 前 5 行引言文字：保留換行與置中排版 */
+      .post-excerpt-5lines {
+        font-size: 16px;
+        line-height: 2;
+        color: #4A4038;
+        margin: 0 auto 22px;
+        white-space: pre-line;
+        text-align: center;
+        font-weight: 500;
+        max-width: 92%;
+      }
+
+      .card-footer {
+        text-align: center;
+        padding-top: 8px;
+      }
+      .read-more-btn {
+        display: inline-block;
+        padding: 9px 24px;
+        background: #FAF6F0;
+        border: 1px solid #C8AD90;
+        color: #3D352E;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+      .read-more-btn:hover {
+        background: #C8AD90;
+        color: #FFFFFF;
+      }
+
+      /* 極簡質感智慧分頁器 (不會整排出現) */
+      .pagination-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 36px;
+        flex-wrap: wrap;
+      }
+      .page-btn {
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid #E6D5C3;
+        background: #FFFFFF;
+        color: #5C5046;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .page-btn:hover:not(:disabled) {
+        background: #F4ECE4;
+        border-color: #C8AD90;
+      }
+      .page-btn.active {
+        background: #C8AD90;
+        color: #FFFFFF;
+        border-color: #C8AD90;
+      }
+      .page-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .page-dots {
+        color: #9C8E80;
+        font-weight: 700;
+        padding: 0 4px;
+      }
+
+      /* 右側個人資訊欄 */
+      .sidebar-card {
+        background: #FFFFFF;
+        border-radius: 16px;
+        border: 1px solid #EFE6DD;
+        padding: 26px 22px;
+        text-align: center;
+        position: sticky;
+        top: 86px;
+        box-shadow: 0 4px 20px rgba(61, 53, 46, 0.04);
+      }
+      .author-avatar {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #E6D5C3;
+        margin-bottom: 12px;
+      }
+      .author-name {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+      }
+      .author-bio {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #6E6259;
+        margin-bottom: 18px;
+      }
+      .ig-btn {
+        display: block;
+        width: 100%;
+        padding: 11px;
+        background: #C8AD90;
+        color: #FFFFFF;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      .ig-btn:hover { background: #B59778; }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a href="/" class="brand-logo">
+          {siteConfig.logoImage && <img src={siteConfig.logoImage} alt={siteConfig.siteTitle} />}
+          <span>{siteConfig.siteTitle}</span>
+        </a>
+        <nav class="nav-links">
+          <button class="nav-btn active" data-cat="all">全部文章 ({posts.length})</button>
+          {categories.map((c: any) => (
+            <button class="nav-btn" data-cat={c.slug}>{c.name}</button>
+          ))}
+        </nav>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="搜尋文章關鍵字..." />
+        </div>
+      </div>
+    </header>
+
+    <main class="main-layout">
+      <div>
+        <section class="posts-grid" id="postsContainer">
+          {posts.map((post) => {
+            const d = new Date(post.data.pubDate);
+            const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+            const views = post.data.baseViews || 5280;
+            const tags = (post.data.tags || []).slice(0, 6);
+            const fiveLines = getFirst5Lines(post.body, post.data.description);
+
+            return (
+              <article class="post-card" data-category={post.data.category} data-title={post.data.title} data-slug={post.slug}>
+                <div class="post-title-box">
+                  <h2><a href={`/blog/${post.slug}/`}>{post.data.title}</a></h2>
+                </div>
+
+                <div class="post-meta">
+                  <span class="cat-badge">{post.data.category || '精選文章'}</span>
+                  <span>📅 {dateStr}</span>
+                  <span class="views-badge">🔥 <span class="view-count" data-slug={post.slug} data-base={views}>{views.toLocaleString()}</span> 次觀看</span>
+                  {tags.map((t: string) => <span class="tag-pill">#{t}</span>)}
+                </div>
+
+                {post.data.heroImage && (
+                  <a href={`/blog/${post.slug}/`} class="post-thumb-link">
+                    <img
+                      src={post.data.heroImage}
+                      alt={post.data.title}
+                      referrerpolicy="no-referrer"
+                      loading="lazy"
+                      onerror="window.recoverPixnetImg && window.recoverPixnetImg(this)"
+                    />
+                  </a>
+                )}
+
+                <div class="post-excerpt-5lines">{fiveLines}</div>
+
+                <div class="card-footer">
+                  <a href={`/blog/${post.slug}/`} class="read-more-btn">(繼續閱讀...)</a>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+
+        <!-- 智慧縮略分頁器 -->
+        <nav class="pagination-wrap" id="paginationWrap"></nav>
+      </div>
+
+      <aside class="sidebar-card">
+        {siteConfig.authorAvatar && <img src={siteConfig.authorAvatar} alt={siteConfig.authorName} class="author-avatar" />}
+        <h3 class="author-name">{siteConfig.authorName || '哪裏。DOKO'}</h3>
+        <p class="author-bio">{siteConfig.authorBio}</p>
+        {siteConfig.instagramUrl && (
+          <a href={siteConfig.instagramUrl} target="_blank" class="ig-btn">📸 追蹤我的 Instagram</a>
+        )}
+        <button id="adminLoginBtn" style="margin-top:12px;background:transparent;border:1px solid #D5C3B0;color:#7A6E65;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;width:100%;">
+          🔑 管理員後台登入
+        </button>
+      </aside>
+    </main>
+
+    <!-- 痞客邦壞死圖片 4 重自動救援引擎 + 智慧分頁 + 觀看人數累加器 -->
+    <script is:inline>
+      window.recoverPixnetImg = function(img) {
+        if (!img || !img.src) return;
+        const step = parseInt(img.dataset.retryStep || '0', 10);
+        const rawUrl = img.dataset.rawSrc || img.src;
+        img.dataset.rawSrc = rawUrl;
+
+        if (step === 0) {
+          // 第 1 重救援：轉為 pic.pimg.tw 並移除縮圖參數 (_n, _b, _m)
+          img.dataset.retryStep = '1';
+          let u = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace('pimg.1px.tw/', 'pic.pimg.tw/');
+          u = u.replace(/_[nbmsq]\.(jpg|jpeg|png|gif|webp)/i, '.$1');
+          img.src = u;
+        } else if (step === 1) {
+          // 第 2 重救援：嘗試 s.pimg.tw 備援主機
+          img.dataset.retryStep = '2';
+          let u = rawUrl.replace('pimg.1px.tw/blog/', 's.pimg.tw/album/').replace('pimg.1px.tw/', 's.pimg.tw/');
+          img.src = u;
+        } else if (step === 2) {
+          // 第 3 重救援：使用全球圖片快取代理 (wsrv.nl)
+          img.dataset.retryStep = '3';
+          let clean = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace(/^https?:\/\//, '');
+          img.src = 'https://wsrv.nl/?url=' + encodeURIComponent(clean);
+        } else if (step === 3) {
+          // 第 4 重救援：網際網路時光機 (Wayback Machine) 備份庫
+          img.dataset.retryStep = '4';
+          let oldPicUrl = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace('pimg.1px.tw/', 'pic.pimg.tw/');
+          img.src = 'https://web.archive.org/web/2/' + oldPicUrl;
+        } else {
+          img.style.display = 'none';
         }
-        paginationBar.innerHTML = '';
-        allCards.forEach(card => {
-          card.style.display = card.innerText.toLowerCase().includes(keyword) ? 'block' : 'none';
+      };
+
+      document.addEventListener('DOMContentLoaded', () => {
+        // 1. 更新每篇文章的觀看人數
+        document.querySelectorAll('.view-count').forEach((el) => {
+          const slug = el.getAttribute('data-slug');
+          const base = parseInt(el.getAttribute('data-base') || '5280', 10);
+          const extra = parseInt(localStorage.getItem('views_' + slug) || '0', 10);
+          el.textContent = (base + extra).toLocaleString();
         });
+
+        // 2. 智慧縮略分頁邏輯 (每頁 10 篇，頁碼絕不整排出現)
+        const ITEMS_PER_PAGE = 10;
+        let currentPage = 1;
+        let currentCat = 'all';
+        let currentQuery = '';
+
+        const allCards = Array.from(document.querySelectorAll('.post-card'));
+        const paginationWrap = document.getElementById('paginationWrap');
+
+        function getFilteredCards() {
+          return allCards.filter((c) => {
+            const cardCat = c.getAttribute('data-category') || '';
+            const title = (c.getAttribute('data-title') || '').toLowerCase();
+            const matchCat = currentCat === 'all' || cardCat.includes(currentCat);
+            const matchQuery = !currentQuery || title.includes(currentQuery);
+            return matchCat && matchQuery;
+          });
+        }
+
+        function renderPage() {
+          const filtered = getFilteredCards();
+          const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+          if (currentPage > totalPages) currentPage = totalPages;
+
+          allCards.forEach((c) => (c.style.display = 'none'));
+          const start = (currentPage - 1) * ITEMS_PER_PAGE;
+          const end = start + ITEMS_PER_PAGE;
+          filtered.slice(start, end).forEach((c) => (c.style.display = 'block'));
+
+          renderPaginationButtons(totalPages);
+        }
+
+        function renderPaginationButtons(totalPages) {
+          if (!paginationWrap) return;
+          paginationWrap.innerHTML = '';
+          if (totalPages <= 1) return;
+
+          const createBtn = (label, targetPage, disabled = false, active = false) => {
+            const b = document.createElement('button');
+            b.className = 'page-btn' + (active ? ' active' : '');
+            b.textContent = label;
+            b.disabled = disabled;
+            if (!disabled && !active) {
+              b.addEventListener('click', () => {
+                currentPage = targetPage;
+                renderPage();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              });
+            }
+            return b;
+          };
+
+          // 上一頁按鈕
+          paginationWrap.appendChild(createBtn('‹ 上一頁', currentPage - 1, currentPage === 1));
+
+          // 智慧計算頁碼：只顯示第 1 頁、最後 1 頁，以及當前頁的前後 1 頁，中間用 ... 縮略
+          const pages = [];
+          for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+              pages.push(i);
+            } else if (pages[pages.length - 1] !== '...') {
+              pages.push('...');
+            }
+          }
+
+          pages.forEach((p) => {
+            if (p === '...') {
+              const span = document.createElement('span');
+              span.className = 'page-dots';
+              span.textContent = '⋯';
+              paginationWrap.appendChild(span);
+            } else {
+              paginationWrap.appendChild(createBtn(String(p), p, false, p === currentPage));
+            }
+          });
+
+          // 下一頁按鈕
+          paginationWrap.appendChild(createBtn('下一頁 ›', currentPage + 1, currentPage === totalPages));
+        }
+
+        // 綁定分類切換與搜尋
+        const navBtns = document.querySelectorAll('.nav-btn');
+        navBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            navBtns.forEach((b) => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCat = btn.getAttribute('data-cat') || 'all';
+            currentPage = 1;
+            renderPage();
+          });
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            currentQuery = e.target.value.toLowerCase().trim();
+            currentPage = 1;
+            renderPage();
+          });
+        }
+
+        const loginBtn = document.getElementById('adminLoginBtn');
+        if (loginBtn) {
+          loginBtn.addEventListener('click', () => {
+            window.location.href = '/admin/';
+          });
+        }
+
+        // 初次渲染第 1 頁
+        renderPage();
       });
-    }
-  </script>
-</BaseLayout>
+    </script>
+  </body>
+</html>
