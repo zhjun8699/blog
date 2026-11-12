@@ -11,7 +11,7 @@ const finalImage = (seo && seo.ogImage) ? seo.ogImage : image;
 
 const { announcement, header, categories, sidebar, colors } = siteConfig;
 
-const allPosts = await getCollection('blog');
+const allPosts = (await getCollection('blog')).filter(post => !post.data.draft);
 const tagCounts = {};
 allPosts.forEach(post => {
   (post.data.tags || []).forEach(tag => {
@@ -28,13 +28,15 @@ const allTags = Object.keys(tagCounts);
     <title>{finalTitle}</title>
     <meta name="description" content={finalDesc} />
 
+    <link rel="icon" href={header.favicon || header.logoImage || "/favicon.svg"} />
+    <link rel="apple-touch-icon" href={header.favicon || header.logoImage || "/favicon.svg"} />
+
     <meta property="og:type" content="website" />
     <meta property="og:title" content={finalTitle} />
     <meta property="og:description" content={finalDesc} />
     {finalImage && <meta property="og:image" content={finalImage} />}
 
     <link rel="stylesheet" href="/styles/theme.css" />
-    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
     <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
     <style define:vars={{
@@ -186,7 +188,6 @@ const allTags = Object.keys(tagCounts);
       function showAdminFeatures() {
         adminBar.style.display = 'flex';
         loginTrigger.innerText = '進入管理後台';
-        // 顯示管理員專屬的「團購按鈕總點擊數據」徽章
         document.querySelectorAll('.admin-click-stats').forEach(el => {
           el.style.display = 'inline-block';
         });
