@@ -10,18 +10,20 @@ const posts = allPosts.sort(
   (a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
 );
 
-// 完整對應原本 siteConfig.json 的所有欄位，找回標題、Logo、Banner、頭像與簡介
 const siteTitle = siteConfig.title || siteConfig.siteTitle || '哪裏。DOKO';
-const siteSubtitle = siteConfig.subtitle || siteConfig.siteSubtitle || '美食情報・旅遊・開箱分享';
+const siteSubtitle = siteConfig.subtitle || siteConfig.siteSubtitle || 'Travel。Eat。Beauty｜美食情報・旅遊・開箱分享';
 const siteDesc = siteConfig.description || siteConfig.siteDescription || siteConfig.bio || '';
 const logoImg = siteConfig.logo || siteConfig.logoImage || '';
 const bannerImg = siteConfig.banner || siteConfig.bannerImage || '';
-const authorName = siteConfig.authorName || siteConfig.author || siteTitle;
+const marqueeText = siteConfig.marquee || siteConfig.announcement || '✨ 歡迎來到 哪裏。DOKO！最新美食探店、國內外旅遊攻略與質感好物開箱持續更新中～ 合作邀約歡迎來信：k81928@gmail.com ✨';
+const authorName = siteConfig.authorName || siteConfig.author || '哪裏。DOKO';
 const authorAvatar = siteConfig.avatar || siteConfig.authorAvatar || logoImg || 'https://pimg.1px.tw/blog/zhjun8699/logo/844863945586290081.webp';
-const authorBio = siteConfig.bio || siteConfig.authorBio || 'Hi！歡迎來到我的部落格，熱愛發掘各地美食、旅遊景點與質感生活好物，分享最真實的體驗紀錄！';
+const authorBio = siteConfig.bio || siteConfig.authorBio || 'Hi！歡迎來到我的部落格\n熱愛發掘各地美食、旅遊景點與質感生活好物，分享最真實紀錄！';
 const coopEmail = siteConfig.email || siteConfig.contactEmail || 'k81928@gmail.com';
 const igUrl = siteConfig.instagram || siteConfig.instagramUrl || 'https://www.instagram.com/chun._.1997/';
 const fbUrl = siteConfig.facebook || siteConfig.facebookUrl || 'https://www.facebook.com/doko2021/';
+const adImage = siteConfig.adImage || '';
+const adLink = siteConfig.adLink || igUrl;
 
 function fixPixnetUrl(url: string) {
   if (!url) return '';
@@ -54,16 +56,20 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
   return lines.length > 0 ? lines.join('\n') : (fallbackDesc || '');
 }
 
-const rawCategories = siteConfig.categories || [
-  "台灣美食",
-  "國內外旅遊",
-  "質感保養",
-  "好物開箱",
-  "好物團購"
+const navCategories = [
+  { name: "台灣美食", match: ["台灣美食", "美味食記", "Eat"] },
+  { name: "國內外旅遊", match: ["國內外旅遊", "旅遊攻略", "國外旅遊", "國內旅遊", "Travel"] },
+  { name: "質感保養", match: ["質感保養", "質感住宿", "美容彩妝", "Beauty"] },
+  { name: "好物開箱", match: ["好物開箱", "生活綜合", "攝影寫真", "寵物日記"] },
+  { name: "好物團購", match: ["好物團購", "團購"] }
 ];
-const categories = rawCategories.map((c: any) =>
-  typeof c === 'string' ? { name: c, slug: c } : { name: c.name || c.title, slug: c.slug || c.name || c.title }
-);
+
+// 熱門文章 Top 5 與最新文章 Top 5
+const hotPosts = [...posts].sort((a, b) => (b.data.baseViews || 5000) - (a.data.baseViews || 5000)).slice(0, 5);
+const latestPosts = posts.slice(0, 5);
+
+// 計算總累積人氣基底
+const totalBaseViews = posts.reduce((sum, p) => sum + (p.data.baseViews || 5280), 128500);
 ---
 
 <!doctype html>
@@ -76,6 +82,7 @@ const categories = rawCategories.map((c: any) =>
     <meta name="description" content={siteDesc} />
     <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 
+    <!-- 痞客邦圖片 6 重自動救援引擎 -->
     <script is:inline>
       window.recoverPixnetImg = function(img) {
         if (!img) return;
@@ -84,9 +91,7 @@ const categories = rawCategories.map((c: any) =>
         if (!rawUrl) return;
         img.dataset.rawSrc = rawUrl;
 
-        let cleanPath = rawUrl
-          .replace(/^https?:\/\/[^/]+\//i, '')
-          .replace(/^blog\//i, '');
+        let cleanPath = rawUrl.replace(/^https?:\/\/[^/]+\//i, '').replace(/^blog\//i, '');
         let noSuffixPath = cleanPath.replace(/_[nbmsq]\.(jpg|jpeg|png|gif|webp)/i, '.$1');
 
         if (step === 0) {
@@ -123,20 +128,57 @@ const categories = rawCategories.map((c: any) =>
         background-color: #FAF6F0;
         color: #3D352E;
         overflow-x: hidden;
-        padding-bottom: 80px;
+        padding-bottom: 90px;
       }
 
+      /* 1. 頂部閱讀進度條 */
+      #reading-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 0%;
+        height: 4px;
+        background: linear-gradient(90deg, #C8AD90, #9C7A54);
+        z-index: 99999;
+        transition: width 0.1s ease;
+      }
+
+      /* 2. 頂部動態跑馬燈 */
+      .marquee-bar {
+        background: #EFE6DD;
+        color: #5C5046;
+        font-size: 13.5px;
+        font-weight: 600;
+        padding: 8px 0;
+        overflow: hidden;
+        white-space: nowrap;
+        border-bottom: 1px solid #E2D4C5;
+      }
+      .marquee-track {
+        display: inline-block;
+        padding-left: 100%;
+        animation: marqueeMove 28s linear infinite;
+      }
+      .marquee-bar:hover .marquee-track {
+        animation-play-state: paused;
+      }
+      @keyframes marqueeMove {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+      }
+
+      /* 3. 頂部導覽列 */
       .site-header {
         background: rgba(255, 255, 255, 0.96);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid #E6D5C3;
         position: sticky;
         top: 0;
-        z-index: 100;
+        z-index: 1000;
         padding: 14px 28px;
       }
       .header-inner {
-        max-width: 1200px;
+        max-width: 1240px;
         margin: 0 auto;
         display: flex;
         align-items: center;
@@ -155,8 +197,8 @@ const categories = rawCategories.map((c: any) =>
         letter-spacing: 1.5px;
       }
       .brand-logo img {
-        height: 42px;
-        width: 42px;
+        height: 40px;
+        width: 40px;
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid #E6D5C3;
@@ -192,14 +234,15 @@ const categories = rawCategories.map((c: any) =>
         outline: none;
       }
 
+      /* 頂部 Banner 橫幅區 */
       .hero-banner-wrap {
-        max-width: 1200px;
-        margin: 24px auto 0;
+        max-width: 1240px;
+        margin: 22px auto 0;
         padding: 0 20px;
       }
       .hero-banner {
         width: 100%;
-        max-height: 320px;
+        max-height: 300px;
         border-radius: 18px;
         overflow: hidden;
         box-shadow: 0 6px 24px rgba(61, 53, 46, 0.08);
@@ -207,26 +250,28 @@ const categories = rawCategories.map((c: any) =>
       .hero-banner img {
         width: 100%;
         height: 100%;
-        max-height: 320px;
+        max-height: 300px;
         object-fit: cover;
         display: block;
       }
 
+      /* 主版面：左文章列表 + 右側完整多模組側邊欄 */
       .main-layout {
-        max-width: 1200px;
+        max-width: 1240px;
         margin: 28px auto 60px;
         padding: 0 20px;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1fr) 340px;
         gap: 32px;
         align-items: start;
       }
-      @media (max-width: 960px) {
+      @media (max-width: 980px) {
         .main-layout {
           grid-template-columns: 1fr;
         }
       }
 
+      /* 文章卡片列表 */
       .posts-grid {
         display: flex;
         flex-direction: column;
@@ -275,7 +320,7 @@ const categories = rawCategories.map((c: any) =>
         align-items: center;
         flex-wrap: wrap;
         gap: 8px;
-        margin-bottom: 22px;
+        margin-bottom: 20px;
         font-size: 13px;
         color: #7A6E65;
       }
@@ -303,6 +348,7 @@ const categories = rawCategories.map((c: any) =>
         font-size: 12px;
       }
 
+      /* 首圖：100% 完整顯示不裁切 */
       .post-thumb-link {
         display: flex;
         justify-content: center;
@@ -311,13 +357,12 @@ const categories = rawCategories.map((c: any) =>
         margin: 0 auto 22px;
         border-radius: 12px;
         overflow: hidden;
-        background: transparent;
       }
       .post-thumb-link img {
         display: block;
         max-width: 100%;
         width: auto;
-        max-height: 520px;
+        max-height: 540px;
         height: auto;
         object-fit: contain;
         border-radius: 12px;
@@ -328,6 +373,7 @@ const categories = rawCategories.map((c: any) =>
         transform: scale(1.015);
       }
 
+      /* 前 5 行文字：完整保留換行與置中 */
       .post-excerpt-5lines {
         font-size: 16px;
         line-height: 2;
@@ -338,10 +384,9 @@ const categories = rawCategories.map((c: any) =>
         font-weight: 500;
         max-width: 92%;
       }
-
       .card-footer {
         text-align: center;
-        padding-top: 8px;
+        padding-top: 6px;
       }
       .read-more-btn {
         display: inline-block;
@@ -360,6 +405,7 @@ const categories = rawCategories.map((c: any) =>
         color: #FFFFFF;
       }
 
+      /* 智慧縮略分頁器 */
       .pagination-wrap {
         display: flex;
         justify-content: center;
@@ -403,62 +449,176 @@ const categories = rawCategories.map((c: any) =>
         padding: 0 4px;
       }
 
-      .sidebar-card {
+      /* 4. 右側完整多模組側邊欄 */
+      .sidebar-column {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .sidebar-box {
         background: #FFFFFF;
         border-radius: 18px;
         border: 1px solid #EFE6DD;
-        padding: 28px 22px;
-        text-align: center;
-        position: sticky;
-        top: 86px;
+        padding: 24px 22px;
         box-shadow: 0 4px 20px rgba(61, 53, 46, 0.04);
       }
+      .box-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: #3D352E;
+        background: #F4ECE4;
+        border-left: 4px solid #C8AD90;
+        padding: 9px 14px;
+        border-radius: 6px;
+        margin: 0 0 16px 0;
+      }
       .author-avatar {
-        width: 104px;
-        height: 104px;
+        width: 96px;
+        height: 96px;
         border-radius: 50%;
         object-fit: cover;
         border: 3px solid #E6D5C3;
-        margin-bottom: 14px;
-      }
-      .author-name {
-        font-size: 20px;
-        font-weight: 800;
-        margin: 0 0 10px 0;
-        color: #3D352E;
+        display: block;
+        margin: 0 auto 12px;
       }
       .author-bio {
         font-size: 14px;
         line-height: 1.75;
         color: #5C5046;
+        white-space: pre-line;
         margin-bottom: 14px;
-        text-align: left;
       }
-      .coop-box {
+      .coop-line {
         font-size: 13px;
         color: #7A6E65;
-        background: #FAF6F0;
-        padding: 10px 12px;
-        border-radius: 10px;
         margin-bottom: 16px;
-        border: 1px dashed #E6D5C3;
-        text-align: left;
+        padding: 8px 10px;
+        background: #FAF6F0;
+        border-radius: 8px;
       }
       .ig-btn {
         display: block;
         width: 100%;
-        padding: 12px;
+        padding: 11px;
         background: #A98B6F;
         color: #FFFFFF;
         text-decoration: none;
         border-radius: 10px;
         font-weight: 700;
         font-size: 14px;
-        margin-bottom: 14px;
+        text-align: center;
+        margin-bottom: 16px;
         transition: background 0.2s;
       }
       .ig-btn:hover { background: #8F7256; }
 
+      /* 人氣統計盒 */
+      .hits-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        text-align: center;
+      }
+      .hit-item {
+        background: #FAF6F0;
+        border: 1px solid #E6D5C3;
+        padding: 12px 8px;
+        border-radius: 12px;
+      }
+      .hit-label {
+        font-size: 12px;
+        color: #7A6E65;
+        margin-bottom: 4px;
+      }
+      .hit-num {
+        font-size: 18px;
+        font-weight: 800;
+        color: #9C7A54;
+      }
+
+      /* 側邊欄分類列表與熱門/最新文章列表 */
+      .side-cat-list, .side-post-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .side-cat-btn {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #FAF6F0;
+        border: 1px solid #EFE6DD;
+        padding: 9px 14px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #4A4038;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .side-cat-btn:hover {
+        background: #E6D5C3;
+      }
+      .side-post-item a {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        text-decoration: none;
+        color: #4A4038;
+        font-size: 13.5px;
+        line-height: 1.5;
+        padding: 6px 4px;
+        border-bottom: 1px dashed #EFE6DD;
+        transition: color 0.2s;
+      }
+      .side-post-item a:hover {
+        color: #9C7A54;
+      }
+      .rank-num {
+        background: #C8AD90;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+      }
+
+      /* 5. 回到頂部浮動鈕 */
+      #backToTop {
+        position: fixed;
+        bottom: 76px;
+        right: 28px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #C8AD90;
+        color: #FFFFFF;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9998;
+        transition: all 0.2s;
+      }
+      #backToTop:hover {
+        background: #9C7A54;
+        transform: translateY(-2px);
+      }
+
+      /* 6. 右下角管理員專屬懸浮工具列 */
       .floating-admin-bar {
         position: fixed;
         bottom: 20px;
@@ -499,6 +659,10 @@ const categories = rawCategories.map((c: any) =>
         background: #E6C89C;
         color: #2B231D;
       }
+      .admin-pill.dark {
+        background: rgba(255,255,255,0.15);
+        color: #FFFFFF;
+      }
       .admin-pill:hover {
         transform: translateY(-1px);
         filter: brightness(1.05);
@@ -506,6 +670,15 @@ const categories = rawCategories.map((c: any) =>
     </style>
   </head>
   <body>
+    <!-- 頂部閱讀進度條 -->
+    <div id="reading-progress"></div>
+
+    <!-- 頂部動態跑馬燈 -->
+    <div class="marquee-bar">
+      <div class="marquee-track">{marqueeText}</div>
+    </div>
+
+    <!-- 導覽列 -->
     <header class="site-header">
       <div class="header-inner">
         <a href="/" class="brand-logo">
@@ -513,9 +686,9 @@ const categories = rawCategories.map((c: any) =>
           <span>{siteTitle}</span>
         </a>
         <nav class="nav-links">
-          <button class="nav-btn active" data-cat="all">全部文章 ({posts.length})</button>
-          {categories.map((c: any) => (
-            <button class="nav-btn" data-cat={c.slug}>{c.name}</button>
+          <button class="nav-btn active" data-cat="all">全部文章</button>
+          {navCategories.map((c) => (
+            <button class="nav-btn" data-cat={c.name}>{c.name}</button>
           ))}
         </nav>
         <div class="search-box">
@@ -533,13 +706,14 @@ const categories = rawCategories.map((c: any) =>
     )}
 
     <main class="main-layout">
+      <!-- 左側：文章卡片列表 -->
       <div>
         <section class="posts-grid" id="postsContainer">
           {posts.map((post) => {
             const d = new Date(post.data.pubDate);
             const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
             const views = post.data.baseViews || 5280;
-            const tags = (post.data.tags || []).slice(0, 6);
+            const tags = (post.data.tags || []).slice(0, 8);
             const fiveLines = getFirst5Lines(post.body, post.data.description);
             const heroUrl = fixPixnetUrl(post.data.heroImage);
 
@@ -550,7 +724,7 @@ const categories = rawCategories.map((c: any) =>
                 </div>
 
                 <div class="post-meta">
-                  <span class="cat-badge">{post.data.category || '精選文章'}</span>
+                  <span class="cat-badge">{post.data.category || '台灣美食'}</span>
                   <span>📅 {dateStr}</span>
                   <span class="views-badge">🔥 <span class="view-count" data-slug={post.slug} data-base={views}>{views.toLocaleString()}</span> 次觀看</span>
                   {tags.map((t: string) => <span class="tag-pill">#{t}</span>)}
@@ -577,11 +751,14 @@ const categories = rawCategories.map((c: any) =>
           })}
         </section>
 
+        <!-- 智慧縮略分頁器 -->
         <nav class="pagination-wrap" id="paginationWrap"></nav>
       </div>
 
-      <aside class="sidebar-card">
-        {authorAvatar && (
+      <!-- 右側：完整 6 大模組側邊欄 -->
+      <aside class="sidebar-column">
+        <!-- 模組 1：個人簡介與 Instagram 連結 -->
+        <div class="sidebar-box">
           <img
             src={authorAvatar}
             alt={authorName}
@@ -589,44 +766,175 @@ const categories = rawCategories.map((c: any) =>
             referrerpolicy="no-referrer"
             onerror="this.src='https://pimg.1px.tw/blog/zhjun8699/logo/844863945586290081.webp'"
           />
-        )}
-        <h3 class="author-name">{authorName}</h3>
-        <p class="author-bio">{authorBio}</p>
-        <div class="coop-box">
-          📩 合作邀約歡迎來信或私訊 IG：<br />
-          <strong>{coopEmail}</strong>
-        </div>
-        {igUrl && (
+          <p class="author-bio">{authorBio}</p>
+          <div class="coop-line">
+            📩 合作邀約歡迎來信或私訊：<br />
+            <strong>{coopEmail}</strong>
+          </div>
           <a href={igUrl} target="_blank" class="ig-btn">📸 追蹤我的 Instagram</a>
-        )}
-        {fbUrl && (
-          <a href={fbUrl} target="_blank" class="ig-btn" style="background:#8C7A6B;">👍 追蹤 Facebook 粉專</a>
-        )}
+
+          <div class="box-title" style="margin-top:10px;">Instagram 最新動態</div>
+          <div style="border-radius:12px;overflow:hidden;border:1px solid #EFE6DD;background:#FAF6F0;">
+            <iframe
+              src="https://www.instagram.com/chun._.1997/embed"
+              width="100%"
+              height="380"
+              frameborder="0"
+              scrolling="no"
+              allowtransparency="true"
+              style="display:block;"
+            ></iframe>
+          </div>
+        </div>
+
+        <!-- 模組 2：參觀人氣 (單日 / 累積) -->
+        <div class="sidebar-box">
+          <h4 class="box-title">📊 參觀人氣統計</h4>
+          <div class="hits-grid">
+            <div class="hit-item">
+              <div class="hit-label">本日人氣</div>
+              <div class="hit-num" id="dailyHits">386</div>
+            </div>
+            <div class="hit-item">
+              <div class="hit-label">累積人氣</div>
+              <div class="hit-num" id="totalHits">{totalBaseViews.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 模組 3：文章分類 -->
+        <div class="sidebar-box">
+          <h4 class="box-title">📂 文章分類</h4>
+          <ul class="side-cat-list">
+            <li>
+              <button class="side-cat-btn" data-side-cat="all">
+                <span>全部文章</span>
+                <span>({posts.length})</span>
+              </button>
+            </li>
+            {navCategories.map((c) => {
+              const count = posts.filter((p) => {
+                const cat = p.data.category || '';
+                return c.match.some((m) => cat.includes(m));
+              }).length;
+              return (
+                <li>
+                  <button class="side-cat-btn" data-side-cat={c.name}>
+                    <span>{c.name}</span>
+                    <span>({count})</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <!-- 模組 4：熱門文章 Top 5 -->
+        <div class="sidebar-box">
+          <h4 class="box-title">🔥 熱門文章排行</h4>
+          <ul class="side-post-list">
+            {hotPosts.map((p, i) => (
+              <li class="side-post-item">
+                <a href={`/posts/${p.slug}/`}>
+                  <span class="rank-num">{i + 1}</span>
+                  <span>{p.data.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- 模組 5：最新文章 Top 5 -->
+        <div class="sidebar-box">
+          <h4 class="box-title">✨ 最新發布文章</h4>
+          <ul class="side-post-list">
+            {latestPosts.map((p) => (
+              <li class="side-post-item">
+                <a href={`/posts/${p.slug}/`}>
+                  <span>• {p.data.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- 模組 6：精選推薦 / 廣告版位 -->
+        <div class="sidebar-box">
+          <h4 class="box-title">📣 精選推薦 / 廣告</h4>
+          {adImage ? (
+            <a href={adLink} target="_blank">
+              <img src={adImage} alt="精選推薦" style="width:100%;border-radius:10px;" />
+            </a>
+          ) : (
+            <div style="background:#FAF6F0;border:1px dashed #C8AD90;border-radius:12px;padding:18px;text-align:center;color:#7A6E65;font-size:13.5px;line-height:1.7;">
+              <strong>✨ 哪裏。DOKO 合作專區 ✨</strong><br />
+              美食探店・旅遊體驗・質感好物開箱<br />
+              歡迎品牌洽談合作：<br />
+              <a href={`mailto:${coopEmail}`} style="color:#9C7A54;font-weight:700;">{coopEmail}</a>
+            </div>
+          )}
+        </div>
       </aside>
     </main>
 
+    <!-- 回到頂部按鈕 -->
+    <button id="backToTop" title="回到頂部">↑</button>
+
+    <!-- 右下角管理員專屬懸浮工具列 -->
     <div class="floating-admin-bar">
       <span class="admin-status">🛡️ 管理員模式</span>
       <a href="/admin/#/collections/blog/new" class="admin-pill">＋ 新增文章</a>
       <a href="/admin/#/collections/settings/entries/siteConfig" class="admin-pill gold">🎨 修改版面/圖片/分類</a>
       <a href="/admin/" class="admin-pill">⚙️ 後台首頁</a>
+      <button id="adminLogoutBtn" class="admin-pill dark">登出</button>
     </div>
 
-    <script is:inline>
+    <script is:inline define:vars={{ totalBaseViews }}>
       document.addEventListener('DOMContentLoaded', () => {
+        // 1. 閱讀進度條 & 回頂部按鈕
+        const progressBar = document.getElementById('reading-progress');
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+          const scrollTop = window.scrollY || document.documentElement.scrollTop;
+          const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+          const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+          if (progressBar) progressBar.style.width = percent + '%';
+          if (backToTopBtn) {
+            backToTopBtn.style.display = scrollTop > 300 ? 'flex' : 'none';
+          }
+        });
+        if (backToTopBtn) {
+          backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          });
+        }
+
+        // 2. 巡檢首圖破圖救援
         document.querySelectorAll('.post-thumb-link img').forEach((img) => {
           if (img.complete && img.naturalWidth === 0) {
             window.recoverPixnetImg(img);
           }
         });
 
+        // 3. 更新單篇文章觀看數 & 側邊欄本日/累積人氣
+        let extraSum = 0;
         document.querySelectorAll('.view-count').forEach((el) => {
           const slug = el.getAttribute('data-slug');
           const base = parseInt(el.getAttribute('data-base') || '5280', 10);
           const extra = parseInt(localStorage.getItem('views_' + slug) || '0', 10);
+          extraSum += extra;
           el.textContent = (base + extra).toLocaleString();
         });
 
+        const todayKey = 'daily_hits_' + new Date().toISOString().slice(0, 10);
+        const dailyVal = parseInt(localStorage.getItem(todayKey) || '386', 10) + 1;
+        localStorage.setItem(todayKey, String(dailyVal));
+        const dailyEl = document.getElementById('dailyHits');
+        const totalEl = document.getElementById('totalHits');
+        if (dailyEl) dailyEl.textContent = dailyVal.toLocaleString();
+        if (totalEl) totalEl.textContent = (totalBaseViews + extraSum + dailyVal).toLocaleString();
+
+        // 4. 智慧縮略分頁邏輯
         const ITEMS_PER_PAGE = 10;
         let currentPage = 1;
         let currentCat = 'all';
@@ -635,15 +943,22 @@ const categories = rawCategories.map((c: any) =>
         const allCards = Array.from(document.querySelectorAll('.post-card'));
         const paginationWrap = document.getElementById('paginationWrap');
 
+        function matchCategory(cardCat, selected) {
+          if (selected === 'all') return true;
+          if (cardCat.includes(selected)) return true;
+          if (selected === '台灣美食' && /美食|食記|Eat/.test(cardCat)) return true;
+          if (selected === '國內外旅遊' && /旅遊|Travel/.test(cardCat)) return true;
+          if (selected === '質感保養' && /保養|住宿|彩妝|Beauty/.test(cardCat)) return true;
+          if (selected === '好物開箱' && /開箱|生活|攝影|寵物/.test(cardCat)) return true;
+          if (selected === '好物團購' && /團購/.test(cardCat)) return true;
+          return false;
+        }
+
         function getFilteredCards() {
           return allCards.filter((c) => {
             const cardCat = c.getAttribute('data-category') || '';
             const title = (c.getAttribute('data-title') || '').toLowerCase();
-            let matchCat = currentCat === 'all' || cardCat.includes(currentCat);
-            if (!matchCat && currentCat.includes('旅遊') && cardCat.includes('旅遊')) matchCat = true;
-            if (!matchCat && currentCat.includes('保養') && (cardCat.includes('住宿') || cardCat.includes('保養'))) matchCat = true;
-            const matchQuery = !currentQuery || title.includes(currentQuery);
-            return matchCat && matchQuery;
+            return matchCategory(cardCat, currentCat) && (!currentQuery || title.includes(currentQuery));
           });
         }
 
@@ -706,13 +1021,23 @@ const categories = rawCategories.map((c: any) =>
         }
 
         const navBtns = document.querySelectorAll('.nav-btn');
+        function setCategoryFilter(cat) {
+          currentCat = cat;
+          currentPage = 1;
+          navBtns.forEach((b) => {
+            b.classList.toggle('active', b.getAttribute('data-cat') === cat);
+          });
+          renderPage();
+        }
+
         navBtns.forEach((btn) => {
+          btn.addEventListener('click', () => setCategoryFilter(btn.getAttribute('data-cat') || 'all'));
+        });
+
+        document.querySelectorAll('.side-cat-btn').forEach((btn) => {
           btn.addEventListener('click', () => {
-            navBtns.forEach((b) => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentCat = btn.getAttribute('data-cat') || 'all';
-            currentPage = 1;
-            renderPage();
+            setCategoryFilter(btn.getAttribute('data-side-cat') || 'all');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           });
         });
 
@@ -722,6 +1047,14 @@ const categories = rawCategories.map((c: any) =>
             currentQuery = e.target.value.toLowerCase().trim();
             currentPage = 1;
             renderPage();
+          });
+        }
+
+        const logoutBtn = document.getElementById('adminLogoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', () => {
+            if (window.netlifyIdentity) window.netlifyIdentity.logout();
+            alert('已登出管理員模式');
           });
         }
 
