@@ -180,3 +180,10 @@ img {
 #backToTopBtn:hover { background-color: #3D352E; }
 
 .site-footer { text-align: center; padding: 30px 20px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 0.9rem; background-color: var(--bg-card); }
+/* 支援 Word / Pages 編輯器的文字大小與對齊格式 */
+.ql-size-small { font-size: 0.85em; }
+.ql-size-large { font-size: 1.25em; }
+.ql-size-huge { font-size: 1.6em; font-weight: 700; }
+.ql-align-center { text-align: center; }
+.ql-align-right { text-align: right; }
+.ql-align-justify { text-align: justify; }
