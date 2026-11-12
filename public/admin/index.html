@@ -7,6 +7,28 @@
   <title>部落格專業管理後台 | GAVIN'S SELECT</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <style>
+    /* 讓後台編輯器更寬敞、字體更好讀，像 Word 一樣舒適 */
+    [data-slate-editor="true"] {
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif !important;
+      font-size: 16px !important;
+      line-height: 1.8 !important;
+      background: #FAF6F0 !important;
+      padding: 20px !important;
+      border-radius: 8px;
+    }
+    [data-slate-editor="true"] h2 {
+      background-color: #E6D5C3;
+      color: #3D352E;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border-left: 5px solid #C8AD90;
+    }
+    [data-slate-editor="true"] img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 12px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
     .template-helper-bar {
       position: fixed;
       bottom: 16px;
@@ -14,7 +36,7 @@
       transform: translateX(-50%);
       background: #3D352E;
       color: #FAF6F0;
-      padding: 8px 16px;
+      padding: 8px 18px;
       border-radius: 30px;
       z-index: 99999;
       display: flex;
@@ -23,12 +45,13 @@
       font-family: sans-serif;
       font-size: 13px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      flex-wrap: wrap;
     }
     .template-helper-bar button {
       background: #E6D5C3;
       color: #3D352E;
       border: none;
-      padding: 5px 11px;
+      padding: 6px 12px;
       border-radius: 15px;
       font-weight: bold;
       cursor: pointer;
@@ -43,8 +66,11 @@
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
-    // 註冊繁體中文介面與部署按鈕文字
+    // 1. 載入前台的 theme.css 到後台右側預覽視窗，實現 100% 所見即所得！
     if (window.CMS) {
+      CMS.registerPreviewStyle("/styles/theme.css");
+
+      // 2. 註冊繁體中文介面與部署按鈕文字
       CMS.registerLocale('zh_Hant', {
         app: {
           header: {
@@ -52,13 +78,6 @@
             workflow: '草稿審核',
             media: '圖片媒體庫',
             quickAdd: '➕ 快速新增',
-          },
-          app: {
-            errorHeader: '載入後台設定時發生錯誤',
-            configErrors: '設定檔錯誤',
-            checkConfigYml: '請檢查 config.yml 檔案',
-            loadingEntry: '正在載入內容...',
-            waitingForBackend: '正在連接後台資料庫...',
           },
         },
         collection: {
@@ -75,36 +94,15 @@
             ascending: '由舊到新',
             descending: '由新到舊',
           },
-          entries: {
-            loadingEntries: '正在載入列表...',
-            cachingEntries: '正在快取列表...',
-            longerLoading: '這可能需要幾秒鐘的時間',
-            noEntries: '目前沒有任何內容',
-          },
         },
         editor: {
           editorControl: {
-            field: {
-              optional: '選填',
-            },
-          },
-          editorControlPane: {
-            widget: {
-              required: '%{fieldLabel} 為必填欄位',
-            },
-          },
-          editor: {
-            onLeavePage: '您確定要離開此頁面嗎？未儲存的變更將會遺失。',
-            onDeleteWithUnsavedChangesTitle: '確定要刪除此已發布的項目嗎？',
-            onDeleteWithUnsavedChangesBody: '刪除後將無法復原。',
-            onDeletePublishedEntryTitle: '確定要刪除此項目嗎？',
-            onDeletePublishedEntryBody: '刪除後將直接從網站移除。',
-            loadingEntry: '載入文章中...',
+            field: { optional: '選填' },
           },
           editorInterface: {
             toggleI18n: '切換多語系',
-            togglePreview: '切換右側預覽畫面',
-            toggleScrollSync: '同步滾動',
+            togglePreview: '👁️ 顯示/隱藏右側排版預覽',
+            toggleScrollSync: '同步滾動預覽',
           },
           editorToolbar: {
             publishing: '🚀 正在部署更新至網站...',
@@ -112,73 +110,44 @@
             published: '✅ 已發布上線',
             unpublish: '取消發布',
             duplicate: '複製這篇',
-            unpublishing: '正在取消發布...',
-            publishAndCreateNew: '🚀 發布並繼續新增下一篇',
-            publishAndDuplicate: '🚀 發布並複製這篇',
-            deleteUnpublishedChanges: '放棄未儲存的修改',
-            deleteUnpublishedEntry: '刪除草稿',
+            publishAndCreateNew: '🚀 發布並新增下一篇',
             deletePublishedEntry: '🗑️ 刪除此篇文章',
-            deleteEntry: '刪除項目',
             saving: '儲存中...',
             save: '💾 儲存修改',
-            statusInfoTooltipDraft: '目前為草稿狀態',
-            statusInfoTooltipInReview: '目前正在審核中',
-            statusInfoTooltipReady: '已準備好可隨時發布',
             backCollection: '← 返回 %{collectionLabel}',
             unsavedChanges: '有尚未發布的修改',
             changesSaved: '修改已同步至網站！',
           },
         },
         mediaLibrary: {
-          mediaLibraryCard: {
-            draft: '草稿',
-            copy: '複製圖片路徑',
-            copyUrl: '複製圖片網址',
-            copyName: '複製檔名',
-            copied: '✅ 已複製',
-          },
-          mediaLibrary: {
-            onDeleteTitle: '確定要刪除這張圖片嗎？',
-            onDeleteBody: '確定要從媒體庫永久刪除此圖片嗎？',
-          },
           mediaLibraryModal: {
             loading: '載入媒體庫中...',
-            noResults: '找不到符合的圖片',
             noAssetsFound: '目前還沒有上傳任何圖片',
-            noImagesFound: '目前還沒有圖片',
-            private: '私人',
-            images: '圖片',
-            mediaAssets: '媒體檔案',
             search: '搜尋圖片...',
             uploading: '圖片上傳中...',
-            upload: '⬆️ 點此上傳新圖片',
+            upload: '⬆️ 點此從電腦上傳新圖片',
             download: '下載圖片',
-            deleting: '刪除中...',
             deleteSelected: '🗑️ 刪除選取的圖片',
-            chooseSelected: '✅ 確定使用選取的圖片',
-          },
-        },
-        ui: {
-          default: {
-            goBackToSite: '← 返回部落格前台',
+            chooseSelected: '✅ 確定插入選取的圖片',
           },
         },
       });
     }
   </script>
 
+  <!-- 底部快速排版與一鍵模板工具列 -->
   <div class="template-helper-bar">
-    <span>📋 點擊複製預設文章排版骨架：</span>
+    <span>📋 一鍵複製排版骨架：</span>
     <button onclick="copyTemplate('cafe')">☕ 咖啡廳食記</button>
     <button onclick="copyTemplate('travel')">✈️ 旅遊攻略</button>
     <button onclick="copyTemplate('hotel')">🏨 住宿開箱</button>
     <button onclick="copyTemplate('review')">🛍️ 好物評測</button>
-    <span id="copyToast" style="color: #90EE90; font-weight: bold; display: none;">✅ 已複製！可直接貼入文章內容</span>
+    <span id="copyToast" style="color: #90EE90; font-weight: bold; display: none;">✅ 已複製！</span>
   </div>
 
   <script>
     const templates = {
-      cafe: `## 空間環境與氛圍亮點\n\n走進店裡最吸引人的就是採光與裝潢風格，整體的座位配置非常舒適...\n\n### 必拍角落與座位區\n\n* **窗邊採光區：** 午後陽光灑落非常適合拍照。\n* **室內沙發區：** 桌距寬敞，適合聊天或帶電腦工作。\n\n## 完整菜單與價目表\n\n（這裡可以放上菜單照片或低消規定）\n\n## 今日餐點與飲品真實心得\n\n### 1. 招牌必點餐點名稱 ($價格)\n口感層次豐富，甜度適中不膩口...\n\n### 2. 手沖咖啡 / 特調飲品 ($價格)\n香氣濃郁，搭配甜點非常剛好！\n\n## 總結與訪店建議\n\n推薦給喜歡質感空間與精緻甜點的朋友，建議週末提早前往以免久候！`,
+      cafe: `## 空間環境與氛圍亮點\n\n走進店裡最吸引人的就是採光與裝潢風格，整體的座位配置非常舒適...\n\n### 必拍角落與座位區\n\n* **窗邊採光區：** 午後陽光灑落非常適合拍照。\n* **室內沙發區：** 桌距寬敞，適合聊天或帶電腦工作。\n\n## 完整菜單與價目表\n\n（點上方工具列的「＋」➔「Image」即可在此插入菜單照片）\n\n## 今日餐點與飲品真實心得\n\n### 1. 招牌必點餐點名稱 ($價格)\n口感層次豐富，甜度適中不膩口...\n\n### 2. 手沖咖啡 / 特調飲品 ($價格)\n香氣濃郁，搭配甜點非常剛好！\n\n## 總結與訪店建議\n\n推薦給喜歡質感空間與精緻甜點的朋友，建議週末提早前往以免久候！`,
       travel: `## 行程總覽與行前準備\n\n這次規劃的行程涵蓋了必訪景點與私房美食，交通動線順暢不繞路！\n\n### 交通方式與必備票券\n\n* **交通建議：** \n* **建議停留時間：** \n\n## 第一站：必訪人氣景點亮點\n\n現場風景非常壯觀，建議可以在上午時段抵達避開人潮...\n\n## 周邊順遊美食推薦\n\n逛完景點後步行即可抵達的在地人氣美食...\n\n## 旅遊小提醒與總結心得\n\n整體來說非常適合安排一日遊或多日放鬆行程！`,
       hotel: `## 飯店位置與交通停車資訊\n\n飯店地理位置相當便利，周邊生活機能完善...\n\n## 大廳環境與公共設施開箱\n\n辦理入住的櫃檯人員親切，大廳設計充滿質感...\n\n## 房型開箱：空間、床鋪與衛浴細節\n\n### 臥室與床鋪舒適度\n採光極佳，床墊軟硬適中，隔音表現也很不錯...\n\n### 衛浴空間與備品\n乾濕分離設計，洗沐備品香氣療癒...\n\n## 早餐餐點與整體住宿評價\n\n隔天早餐種類豐富，整體 CP 值相當高！`,
       review: `## 為什麼會入手這款好物？(痛點與需求)\n\n平常在挑選這類產品時，最在意的就是實用性、質地與真實 CP 值...\n\n## 外觀包裝與核心亮點開箱\n\n* **亮點 1：** \n* **亮點 2：** \n* **亮點 3：** \n\n## 實際使用一段時間後的真實感受\n\n實際連續使用下來，最有感的地方在於...\n\n## 適合誰買？購買與團購優惠資訊\n\n如果你也有相同困擾，非常推薦趁這次團購優惠入手！`
