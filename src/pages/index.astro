@@ -1,39 +1,20 @@
 ---
 import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import siteConfig from '../data/siteConfig.json';
 
-const allPosts = await getCollection('blog', ({ data }) => {
-  return data.draft !== true;
-});
+const now = new Date();
+const posts = (await getCollection('blog'))
+  .filter(post => !post.data.draft && new Date(post.data.pubDate) <= now)
+  .sort((a, b) => {
+    if (a.data.pinned && !b.data.pinned) return -1;
+    if (!a.data.pinned && b.data.pinned) return 1;
+    return new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf();
+  });
 
-const posts = allPosts.sort(
-  (a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
-);
+const postsPerPage = siteConfig.postsPerPage || 6;
 
-const siteTitle = siteConfig.title || siteConfig.siteTitle || '哪裏。DOKO';
-const siteSubtitle = siteConfig.subtitle || siteConfig.siteSubtitle || 'Travel。Eat。Beauty｜美食情報・旅遊・開箱分享';
-const siteDesc = siteConfig.description || siteConfig.siteDescription || siteConfig.bio || '';
-const logoImg = siteConfig.logo || siteConfig.logoImage || '';
-const bannerImg = siteConfig.banner || siteConfig.bannerImage || '';
-const marqueeText = siteConfig.marquee || siteConfig.announcement || '✨ 歡迎來到 哪裏。DOKO！最新美食探店、國內外旅遊攻略與質感好物開箱持續更新中～ 合作邀約歡迎來信：k81928@gmail.com ✨';
-const authorName = siteConfig.authorName || siteConfig.author || '哪裏。DOKO';
-const authorAvatar = siteConfig.avatar || siteConfig.authorAvatar || logoImg || 'https://pimg.1px.tw/blog/zhjun8699/logo/844863945586290081.webp';
-const authorBio = siteConfig.bio || siteConfig.authorBio || 'Hi！歡迎來到我的部落格\n熱愛發掘各地美食、旅遊景點與質感生活好物，分享最真實紀錄！';
-const coopEmail = siteConfig.email || siteConfig.contactEmail || 'k81928@gmail.com';
-const igUrl = siteConfig.instagram || siteConfig.instagramUrl || 'https://www.instagram.com/chun._.1997/';
-const fbUrl = siteConfig.facebook || siteConfig.facebookUrl || 'https://www.facebook.com/doko2021/';
-const adImage = siteConfig.adImage || '';
-const adLink = siteConfig.adLink || igUrl;
-
-function fixPixnetUrl(url: string) {
-  if (!url) return '';
-  let u = url.trim();
-  if (/pimg\.1px\.tw\/zhjun8699\/\d+/i.test(u)) {
-    u = u.replace('pimg.1px.tw/', 'pic.pimg.tw/');
-  }
-  return u;
-}
-
+// 自動從文章內容萃取「前 5 行文字」，完整保留換行節奏
 function getFirst5Lines(body: string, fallbackDesc: string) {
   if (!body) return fallbackDesc || '';
   let text = body
@@ -55,1011 +36,176 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
 
   return lines.length > 0 ? lines.join('\n') : (fallbackDesc || '');
 }
-
-const navCategories = [
-  { name: "台灣美食", match: ["台灣美食", "美味食記", "Eat"] },
-  { name: "國內外旅遊", match: ["國內外旅遊", "旅遊攻略", "國外旅遊", "國內旅遊", "Travel"] },
-  { name: "質感保養", match: ["質感保養", "質感住宿", "美容彩妝", "Beauty"] },
-  { name: "好物開箱", match: ["好物開箱", "生活綜合", "攝影寫真", "寵物日記"] },
-  { name: "好物團購", match: ["好物團購", "團購"] }
-];
-
-// 熱門文章 Top 5 與最新文章 Top 5
-const hotPosts = [...posts].sort((a, b) => (b.data.baseViews || 5000) - (a.data.baseViews || 5000)).slice(0, 5);
-const latestPosts = posts.slice(0, 5);
-
-// 計算總累積人氣基底
-const totalBaseViews = posts.reduce((sum, p) => sum + (p.data.baseViews || 5280), 128500);
 ---
 
-<!doctype html>
-<html lang="zh-Hant">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="referrer" content="no-referrer" />
-    <title>{siteTitle} | {siteSubtitle}</title>
-    <meta name="description" content={siteDesc} />
-    <script is:inline src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+<BaseLayout>
+<div id="filterStatusBanner" style="display: none; background: var(--bg-main); padding: 12px 18px; border-radius: 8px; margin-bottom: 22px; justify-content: space-between; align-items: center;">
+  <span id="filterStatusText" style="font-weight: 700;"></span>
+  <a href="/" style="font-size: 0.88rem; color: var(--milk-tea-dark); font-weight: 600;">✕ 清除篩選返回全部</a>
+</div>
 
-    <!-- 痞客邦圖片 6 重自動救援引擎 -->
-    <script is:inline>
-      window.recoverPixnetImg = function(img) {
-        if (!img) return;
-        const step = parseInt(img.dataset.retryStep || '0', 10);
-        const rawUrl = img.dataset.rawSrc || img.getAttribute('src') || '';
-        if (!rawUrl) return;
-        img.dataset.rawSrc = rawUrl;
+<div class="posts-list" id="postsList" data-per-page={postsPerPage}>
+{posts.map((post) => {
+  const altText = (post.data.seo && post.data.seo.imageAlt) ? post.data.seo.imageAlt : post.data.title;
+  const views = post.data.baseViews || 5280;
+  const fiveLines = getFirst5Lines(post.body, post.data.description);
+  const tags = (post.data.tags || []).slice(0, 8);
 
-        let cleanPath = rawUrl.replace(/^https?:\/\/[^/]+\//i, '').replace(/^blog\//i, '');
-        let noSuffixPath = cleanPath.replace(/_[nbmsq]\.(jpg|jpeg|png|gif|webp)/i, '.$1');
+  return (
+    <article 
+      class="post-card" 
+      data-category={post.data.category} 
+      data-tags={(post.data.tags || []).join(',')}
+      data-slug={post.slug}
+      style="overflow: hidden;"
+    >
+      <h2 class="post-card-title">
+        {post.data.pinned && <span class="pinned-badge">📌 置頂精選</span>}
+        <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
+      </h2>
 
-        if (step === 0) {
-          img.dataset.retryStep = '1';
-          img.src = 'https://pic.pimg.tw/' + noSuffixPath;
-        } else if (step === 1) {
-          img.dataset.retryStep = '2';
-          img.src = 'https://pimg.1px.tw/' + noSuffixPath;
-        } else if (step === 2) {
-          img.dataset.retryStep = '3';
-          img.src = 'https://pimg.1px.tw/blog/' + noSuffixPath;
-        } else if (step === 3) {
-          img.dataset.retryStep = '4';
-          img.src = 'https://s.pixfs.net/' + cleanPath;
-        } else if (step === 4) {
-          img.dataset.retryStep = '5';
-          img.src = 'https://wsrv.nl/?url=' + encodeURIComponent('pic.pimg.tw/' + noSuffixPath);
-        } else if (step === 5) {
-          img.dataset.retryStep = '6';
-          img.src = 'https://web.archive.org/web/2/https://pic.pimg.tw/' + cleanPath;
-        } else {
-          const linkWrap = img.closest('.post-thumb-link');
-          if (linkWrap) linkWrap.style.display = 'none';
-          else img.style.display = 'none';
-        }
-      };
-    </script>
-
-    <style>
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-        background-color: #FAF6F0;
-        color: #3D352E;
-        overflow-x: hidden;
-        padding-bottom: 90px;
-      }
-
-      /* 1. 頂部閱讀進度條 */
-      #reading-progress {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 0%;
-        height: 4px;
-        background: linear-gradient(90deg, #C8AD90, #9C7A54);
-        z-index: 99999;
-        transition: width 0.1s ease;
-      }
-
-      /* 2. 頂部動態跑馬燈 */
-      .marquee-bar {
-        background: #EFE6DD;
-        color: #5C5046;
-        font-size: 13.5px;
-        font-weight: 600;
-        padding: 8px 0;
-        overflow: hidden;
-        white-space: nowrap;
-        border-bottom: 1px solid #E2D4C5;
-      }
-      .marquee-track {
-        display: inline-block;
-        padding-left: 100%;
-        animation: marqueeMove 28s linear infinite;
-      }
-      .marquee-bar:hover .marquee-track {
-        animation-play-state: paused;
-      }
-      @keyframes marqueeMove {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-100%); }
-      }
-
-      /* 3. 頂部導覽列 */
-      .site-header {
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid #E6D5C3;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        padding: 14px 28px;
-      }
-      .header-inner {
-        max-width: 1240px;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-      }
-      .brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        text-decoration: none;
-        color: #3D352E;
-        font-size: 24px;
-        font-weight: 900;
-        letter-spacing: 1.5px;
-      }
-      .brand-logo img {
-        height: 40px;
-        width: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #E6D5C3;
-      }
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-      }
-      .nav-btn {
-        background: transparent;
-        border: none;
-        padding: 8px 14px;
-        border-radius: 20px;
-        font-size: 15px;
-        font-weight: 700;
-        color: #5C5046;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .nav-btn:hover, .nav-btn.active {
-        background: #E6D5C3;
-        color: #3D352E;
-      }
-      .search-box input {
-        padding: 8px 16px;
-        border-radius: 20px;
-        border: 1px solid #D5C3B0;
-        background: #FAF6F0;
-        font-size: 14px;
-        width: 210px;
-        outline: none;
-      }
-
-      /* 頂部 Banner 橫幅區 */
-      .hero-banner-wrap {
-        max-width: 1240px;
-        margin: 22px auto 0;
-        padding: 0 20px;
-      }
-      .hero-banner {
-        width: 100%;
-        max-height: 300px;
-        border-radius: 18px;
-        overflow: hidden;
-        box-shadow: 0 6px 24px rgba(61, 53, 46, 0.08);
-      }
-      .hero-banner img {
-        width: 100%;
-        height: 100%;
-        max-height: 300px;
-        object-fit: cover;
-        display: block;
-      }
-
-      /* 主版面：左文章列表 + 右側完整多模組側邊欄 */
-      .main-layout {
-        max-width: 1240px;
-        margin: 28px auto 60px;
-        padding: 0 20px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 340px;
-        gap: 32px;
-        align-items: start;
-      }
-      @media (max-width: 980px) {
-        .main-layout {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      /* 文章卡片列表 */
-      .posts-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 32px;
-      }
-      .post-card {
-        background: #FFFFFF;
-        border-radius: 18px;
-        border: 1px solid #EFE6DD;
-        padding: 28px 32px;
-        box-shadow: 0 4px 20px rgba(61, 53, 46, 0.04);
-        transition: transform 0.2s, box-shadow 0.2s;
-        overflow: hidden;
-      }
-      @media (max-width: 640px) {
-        .post-card { padding: 20px 18px; }
-      }
-      .post-card:hover {
-        box-shadow: 0 8px 28px rgba(61, 53, 46, 0.08);
-      }
-
-      .post-title-box {
-        background: #F4ECE4;
-        border-left: 5px solid #C8AD90;
-        padding: 14px 20px;
-        border-radius: 8px;
-        margin-bottom: 14px;
-      }
-      .post-title-box h2 {
-        margin: 0;
-        font-size: 20px;
-        line-height: 1.55;
-        font-weight: 700;
-        word-break: break-word;
-      }
-      .post-title-box a {
-        color: #3D352E;
-        text-decoration: none;
-      }
-      .post-title-box a:hover {
-        color: #9C7A54;
-      }
-
-      .post-meta {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 20px;
-        font-size: 13px;
-        color: #7A6E65;
-      }
-      .cat-badge {
-        background: #C8AD90;
-        color: #FFFFFF;
-        padding: 4px 11px;
-        border-radius: 6px;
-        font-weight: 600;
-      }
-      .views-badge {
-        background: #FAF3EB;
-        color: #9C7A54;
-        border: 1px solid #E6D5C3;
-        padding: 3px 10px;
-        border-radius: 6px;
-        font-weight: 700;
-      }
-      .tag-pill {
-        background: #FAF6F0;
-        border: 1px solid #E6D5C3;
-        color: #6E6259;
-        padding: 2px 9px;
-        border-radius: 12px;
-        font-size: 12px;
-      }
-
-      /* 首圖：100% 完整顯示不裁切 */
-      .post-thumb-link {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        margin: 0 auto 22px;
-        border-radius: 12px;
-        overflow: hidden;
-      }
-      .post-thumb-link img {
-        display: block;
-        max-width: 100%;
-        width: auto;
-        max-height: 540px;
-        height: auto;
-        object-fit: contain;
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(61, 53, 46, 0.06);
-        transition: transform 0.3s ease;
-      }
-      .post-thumb-link:hover img {
-        transform: scale(1.015);
-      }
-
-      /* 前 5 行文字：完整保留換行與置中 */
-      .post-excerpt-5lines {
-        font-size: 16px;
-        line-height: 2;
-        color: #4A4038;
-        margin: 0 auto 22px;
-        white-space: pre-line;
-        text-align: center;
-        font-weight: 500;
-        max-width: 92%;
-      }
-      .card-footer {
-        text-align: center;
-        padding-top: 6px;
-      }
-      .read-more-btn {
-        display: inline-block;
-        padding: 9px 24px;
-        background: #FAF6F0;
-        border: 1px solid #C8AD90;
-        color: #3D352E;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 700;
-        text-decoration: none;
-        transition: all 0.2s;
-      }
-      .read-more-btn:hover {
-        background: #C8AD90;
-        color: #FFFFFF;
-      }
-
-      /* 智慧縮略分頁器 */
-      .pagination-wrap {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 8px;
-        margin-top: 36px;
-        flex-wrap: wrap;
-      }
-      .page-btn {
-        min-width: 40px;
-        height: 40px;
-        padding: 0 12px;
-        border-radius: 10px;
-        border: 1px solid #E6D5C3;
-        background: #FFFFFF;
-        color: #5C5046;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-      }
-      .page-btn:hover:not(:disabled) {
-        background: #F4ECE4;
-        border-color: #C8AD90;
-      }
-      .page-btn.active {
-        background: #C8AD90;
-        color: #FFFFFF;
-        border-color: #C8AD90;
-      }
-      .page-btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
-      .page-dots {
-        color: #9C8E80;
-        font-weight: 700;
-        padding: 0 4px;
-      }
-
-      /* 4. 右側完整多模組側邊欄 */
-      .sidebar-column {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-      }
-      .sidebar-box {
-        background: #FFFFFF;
-        border-radius: 18px;
-        border: 1px solid #EFE6DD;
-        padding: 24px 22px;
-        box-shadow: 0 4px 20px rgba(61, 53, 46, 0.04);
-      }
-      .box-title {
-        font-size: 16px;
-        font-weight: 800;
-        color: #3D352E;
-        background: #F4ECE4;
-        border-left: 4px solid #C8AD90;
-        padding: 9px 14px;
-        border-radius: 6px;
-        margin: 0 0 16px 0;
-      }
-      .author-avatar {
-        width: 96px;
-        height: 96px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #E6D5C3;
-        display: block;
-        margin: 0 auto 12px;
-      }
-      .author-bio {
-        font-size: 14px;
-        line-height: 1.75;
-        color: #5C5046;
-        white-space: pre-line;
-        margin-bottom: 14px;
-      }
-      .coop-line {
-        font-size: 13px;
-        color: #7A6E65;
-        margin-bottom: 16px;
-        padding: 8px 10px;
-        background: #FAF6F0;
-        border-radius: 8px;
-      }
-      .ig-btn {
-        display: block;
-        width: 100%;
-        padding: 11px;
-        background: #A98B6F;
-        color: #FFFFFF;
-        text-decoration: none;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 14px;
-        text-align: center;
-        margin-bottom: 16px;
-        transition: background 0.2s;
-      }
-      .ig-btn:hover { background: #8F7256; }
-
-      /* 人氣統計盒 */
-      .hits-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-        text-align: center;
-      }
-      .hit-item {
-        background: #FAF6F0;
-        border: 1px solid #E6D5C3;
-        padding: 12px 8px;
-        border-radius: 12px;
-      }
-      .hit-label {
-        font-size: 12px;
-        color: #7A6E65;
-        margin-bottom: 4px;
-      }
-      .hit-num {
-        font-size: 18px;
-        font-weight: 800;
-        color: #9C7A54;
-      }
-
-      /* 側邊欄分類列表與熱門/最新文章列表 */
-      .side-cat-list, .side-post-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .side-cat-btn {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #FAF6F0;
-        border: 1px solid #EFE6DD;
-        padding: 9px 14px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #4A4038;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .side-cat-btn:hover {
-        background: #E6D5C3;
-      }
-      .side-post-item a {
-        display: flex;
-        gap: 10px;
-        align-items: flex-start;
-        text-decoration: none;
-        color: #4A4038;
-        font-size: 13.5px;
-        line-height: 1.5;
-        padding: 6px 4px;
-        border-bottom: 1px dashed #EFE6DD;
-        transition: color 0.2s;
-      }
-      .side-post-item a:hover {
-        color: #9C7A54;
-      }
-      .rank-num {
-        background: #C8AD90;
-        color: #fff;
-        font-size: 11px;
-        font-weight: 800;
-        min-width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 2px;
-      }
-
-      /* 5. 回到頂部浮動鈕 */
-      #backToTop {
-        position: fixed;
-        bottom: 76px;
-        right: 28px;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background: #C8AD90;
-        color: #FFFFFF;
-        border: none;
-        font-size: 18px;
-        font-weight: bold;
-        cursor: pointer;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 9998;
-        transition: all 0.2s;
-      }
-      #backToTop:hover {
-        background: #9C7A54;
-        transform: translateY(-2px);
-      }
-
-      /* 6. 右下角管理員專屬懸浮工具列 */
-      .floating-admin-bar {
-        position: fixed;
-        bottom: 20px;
-        right: 24px;
-        z-index: 9999;
-        background: rgba(38, 33, 29, 0.95);
-        backdrop-filter: blur(8px);
-        padding: 8px 14px;
-        border-radius: 30px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
-        border: 1px solid rgba(200, 173, 144, 0.4);
-      }
-      .admin-status {
-        color: #E6D5C3;
-        font-size: 13px;
-        font-weight: 700;
-        padding: 0 6px;
-      }
-      .admin-pill {
-        background: #FAF6F0;
-        color: #3D352E;
-        text-decoration: none;
-        border: none;
-        padding: 6px 13px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .admin-pill.gold {
-        background: #E6C89C;
-        color: #2B231D;
-      }
-      .admin-pill.dark {
-        background: rgba(255,255,255,0.15);
-        color: #FFFFFF;
-      }
-      .admin-pill:hover {
-        transform: translateY(-1px);
-        filter: brightness(1.05);
-      }
-    </style>
-  </head>
-  <body>
-    <!-- 頂部閱讀進度條 -->
-    <div id="reading-progress"></div>
-
-    <!-- 頂部動態跑馬燈 -->
-    <div class="marquee-bar">
-      <div class="marquee-track">{marqueeText}</div>
-    </div>
-
-    <!-- 導覽列 -->
-    <header class="site-header">
-      <div class="header-inner">
-        <a href="/" class="brand-logo">
-          {logoImg && <img src={logoImg} alt={siteTitle} referrerpolicy="no-referrer" onerror="this.style.display='none'" />}
-          <span>{siteTitle}</span>
-        </a>
-        <nav class="nav-links">
-          <button class="nav-btn active" data-cat="all">全部文章</button>
-          {navCategories.map((c) => (
-            <button class="nav-btn" data-cat={c.name}>{c.name}</button>
-          ))}
-        </nav>
-        <div class="search-box">
-          <input type="text" id="searchInput" placeholder="搜尋文章關鍵字..." />
-        </div>
-      </div>
-    </header>
-
-    {bannerImg && (
-      <div class="hero-banner-wrap">
-        <div class="hero-banner">
-          <img src={bannerImg} alt={siteTitle} referrerpolicy="no-referrer" onerror="this.parentElement.parentElement.style.display='none'" />
-        </div>
-      </div>
-    )}
-
-    <main class="main-layout">
-      <!-- 左側：文章卡片列表 -->
-      <div>
-        <section class="posts-grid" id="postsContainer">
-          {posts.map((post) => {
-            const d = new Date(post.data.pubDate);
-            const dateStr = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
-            const views = post.data.baseViews || 5280;
-            const tags = (post.data.tags || []).slice(0, 8);
-            const fiveLines = getFirst5Lines(post.body, post.data.description);
-            const heroUrl = fixPixnetUrl(post.data.heroImage);
-
-            return (
-              <article class="post-card" data-category={post.data.category} data-title={post.data.title} data-slug={post.slug}>
-                <div class="post-title-box">
-                  <h2><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h2>
-                </div>
-
-                <div class="post-meta">
-                  <span class="cat-badge">{post.data.category || '台灣美食'}</span>
-                  <span>📅 {dateStr}</span>
-                  <span class="views-badge">🔥 <span class="view-count" data-slug={post.slug} data-base={views}>{views.toLocaleString()}</span> 次觀看</span>
-                  {tags.map((t: string) => <span class="tag-pill">#{t}</span>)}
-                </div>
-
-                {heroUrl && (
-                  <a href={`/posts/${post.slug}/`} class="post-thumb-link">
-                    <img
-                      src={heroUrl}
-                      alt={post.data.title}
-                      referrerpolicy="no-referrer"
-                      onerror="window.recoverPixnetImg(this)"
-                    />
-                  </a>
-                )}
-
-                <div class="post-excerpt-5lines">{fiveLines}</div>
-
-                <div class="card-footer">
-                  <a href={`/posts/${post.slug}/`} class="read-more-btn">(繼續閱讀...)</a>
-                </div>
-              </article>
-            );
-          })}
-        </section>
-
-        <!-- 智慧縮略分頁器 -->
-        <nav class="pagination-wrap" id="paginationWrap"></nav>
+      <div class="post-meta" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px;">
+        <span class="category-badge">{post.data.category}</span>
+        <span>📅 {new Date(post.data.pubDate).toLocaleDateString('zh-TW')}</span>
+        <span class="views-badge" style="background: #FAF3EB; color: #9C7A54; border: 1px solid #E6D5C3; padding: 2px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem;">
+          🔥 <span class="card-view-count" data-slug={post.slug} data-base={views}>{views.toLocaleString()}</span> 次觀看
+        </span>
+        {tags.map((tag: string) => (
+          <a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">#{tag}</a>
+        ))}
       </div>
 
-      <!-- 右側：完整 6 大模組側邊欄 -->
-      <aside class="sidebar-column">
-        <!-- 模組 1：個人簡介與 Instagram 連結 -->
-        <div class="sidebar-box">
-          <img
-            src={authorAvatar}
-            alt={authorName}
-            class="author-avatar"
+      {post.data.heroImage && (
+        <a href={`/posts/${post.slug}/`} style="display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 18px; border-radius: 12px; overflow: hidden;">
+          <img 
+            src={post.data.heroImage} 
+            alt={altText} 
+            loading="lazy" 
             referrerpolicy="no-referrer"
-            onerror="this.src='https://pimg.1px.tw/blog/zhjun8699/logo/844863945586290081.webp'"
+            style="display: block; width: auto; max-width: 100%; height: auto; max-height: 520px; object-fit: contain; border-radius: 12px; margin: 0 auto;" 
           />
-          <p class="author-bio">{authorBio}</p>
-          <div class="coop-line">
-            📩 合作邀約歡迎來信或私訊：<br />
-            <strong>{coopEmail}</strong>
-          </div>
-          <a href={igUrl} target="_blank" class="ig-btn">📸 追蹤我的 Instagram</a>
+        </a>
+      )}
 
-          <div class="box-title" style="margin-top:10px;">Instagram 最新動態</div>
-          <div style="border-radius:12px;overflow:hidden;border:1px solid #EFE6DD;background:#FAF6F0;">
-            <iframe
-              src="https://www.instagram.com/chun._.1997/embed"
-              width="100%"
-              height="380"
-              frameborder="0"
-              scrolling="no"
-              allowtransparency="true"
-              style="display:block;"
-            ></iframe>
-          </div>
-        </div>
+      <p style="color: var(--text-primary); margin: 0 auto 18px auto; white-space: pre-line; line-height: 1.95; text-align: center;">
+        {fiveLines}
+      </p>
 
-        <!-- 模組 2：參觀人氣 (單日 / 累積) -->
-        <div class="sidebar-box">
-          <h4 class="box-title">📊 參觀人氣統計</h4>
-          <div class="hits-grid">
-            <div class="hit-item">
-              <div class="hit-label">本日人氣</div>
-              <div class="hit-num" id="dailyHits">386</div>
-            </div>
-            <div class="hit-item">
-              <div class="hit-label">累積人氣</div>
-              <div class="hit-num" id="totalHits">{totalBaseViews.toLocaleString()}</div>
-            </div>
-          </div>
-        </div>
+      <div style="text-align: center;">
+        <a href={`/posts/${post.slug}/`} class="read-more-btn">閱讀完整文章 →</a>
+      </div>
+    </article>
+  );
+})}
+</div>
 
-        <!-- 模組 3：文章分類 -->
-        <div class="sidebar-box">
-          <h4 class="box-title">📂 文章分類</h4>
-          <ul class="side-cat-list">
-            <li>
-              <button class="side-cat-btn" data-side-cat="all">
-                <span>全部文章</span>
-                <span>({posts.length})</span>
-              </button>
-            </li>
-            {navCategories.map((c) => {
-              const count = posts.filter((p) => {
-                const cat = p.data.category || '';
-                return c.match.some((m) => cat.includes(m));
-              }).length;
-              return (
-                <li>
-                  <button class="side-cat-btn" data-side-cat={c.name}>
-                    <span>{c.name}</span>
-                    <span>({count})</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+<div id="paginationBar" class="pagination-bar" style="display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 28px;"></div>
 
-        <!-- 模組 4：熱門文章 Top 5 -->
-        <div class="sidebar-box">
-          <h4 class="box-title">🔥 熱門文章排行</h4>
-          <ul class="side-post-list">
-            {hotPosts.map((p, i) => (
-              <li class="side-post-item">
-                <a href={`/posts/${p.slug}/`}>
-                  <span class="rank-num">{i + 1}</span>
-                  <span>{p.data.title}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+<script is:inline>
+// 1. 同步更新每張文章卡片的觀看人數 (5000+ 起跳加上瀏覽累加)
+document.querySelectorAll('.card-view-count').forEach((el) => {
+  const slug = el.getAttribute('data-slug');
+  const base = parseInt(el.getAttribute('data-base') || '5280', 10);
+  const extra = parseInt(localStorage.getItem('views_' + slug) || '0', 10);
+  el.textContent = (base + extra).toLocaleString();
+});
 
-        <!-- 模組 5：最新文章 Top 5 -->
-        <div class="sidebar-box">
-          <h4 class="box-title">✨ 最新發布文章</h4>
-          <ul class="side-post-list">
-            {latestPosts.map((p) => (
-              <li class="side-post-item">
-                <a href={`/posts/${p.slug}/`}>
-                  <span>• {p.data.title}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+// 2. 分類、標籤篩選與智慧縮略分頁器
+const params = new URLSearchParams(window.location.search);
+const selectedCategory = params.get('category');
+const selectedTag = params.get('tag');
+const filterBanner = document.getElementById('filterStatusBanner');
+const filterText = document.getElementById('filterStatusText');
+const allCards = Array.from(document.querySelectorAll('.post-card'));
+const postsListEl = document.getElementById('postsList');
+const paginationBar = document.getElementById('paginationBar');
+const perPage = parseInt(postsListEl.dataset.perPage || '6', 10);
 
-        <!-- 模組 6：精選推薦 / 廣告版位 -->
-        <div class="sidebar-box">
-          <h4 class="box-title">📣 精選推薦 / 廣告</h4>
-          {adImage ? (
-            <a href={adLink} target="_blank">
-              <img src={adImage} alt="精選推薦" style="width:100%;border-radius:10px;" />
-            </a>
-          ) : (
-            <div style="background:#FAF6F0;border:1px dashed #C8AD90;border-radius:12px;padding:18px;text-align:center;color:#7A6E65;font-size:13.5px;line-height:1.7;">
-              <strong>✨ 哪裏。DOKO 合作專區 ✨</strong><br />
-              美食探店・旅遊體驗・質感好物開箱<br />
-              歡迎品牌洽談合作：<br />
-              <a href={`mailto:${coopEmail}`} style="color:#9C7A54;font-weight:700;">{coopEmail}</a>
-            </div>
-          )}
-        </div>
-      </aside>
-    </main>
+let filteredCards = allCards;
 
-    <!-- 回到頂部按鈕 -->
-    <button id="backToTop" title="回到頂部">↑</button>
+if (selectedCategory) {
+  filterBanner.style.display = 'flex';
+  filterText.innerText = `📂 目前顯示分類：「${selectedCategory}」`;
+  filteredCards = allCards.filter(c => c.dataset.category === selectedCategory);
+} else if (selectedTag) {
+  filterBanner.style.display = 'flex';
+  filterText.innerText = `🏷️ 目前顯示標籤：「#${selectedTag}」`;
+  filteredCards = allCards.filter(c => (c.dataset.tags || '').split(',').includes(selectedTag));
+}
 
-    <!-- 右下角管理員專屬懸浮工具列 -->
-    <div class="floating-admin-bar">
-      <span class="admin-status">🛡️ 管理員模式</span>
-      <a href="/admin/#/collections/blog/new" class="admin-pill">＋ 新增文章</a>
-      <a href="/admin/#/collections/settings/entries/siteConfig" class="admin-pill gold">🎨 修改版面/圖片/分類</a>
-      <a href="/admin/" class="admin-pill">⚙️ 後台首頁</a>
-      <button id="adminLogoutBtn" class="admin-pill dark">登出</button>
-    </div>
+function renderPage(page) {
+  allCards.forEach(c => c.style.display = 'none');
+  const totalPages = Math.ceil(filteredCards.length / perPage) || 1;
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
 
-    <script is:inline define:vars={{ totalBaseViews }}>
-      document.addEventListener('DOMContentLoaded', () => {
-        // 1. 閱讀進度條 & 回頂部按鈕
-        const progressBar = document.getElementById('reading-progress');
-        const backToTopBtn = document.getElementById('backToTop');
-        window.addEventListener('scroll', () => {
-          const scrollTop = window.scrollY || document.documentElement.scrollTop;
-          const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-          const percent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-          if (progressBar) progressBar.style.width = percent + '%';
-          if (backToTopBtn) {
-            backToTopBtn.style.display = scrollTop > 300 ? 'flex' : 'none';
-          }
-        });
-        if (backToTopBtn) {
-          backToTopBtn.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
-        }
+  const start = (page - 1) * perPage;
+  const end = start + perPage;
+  filteredCards.slice(start, end).forEach(c => c.style.display = 'block');
 
-        // 2. 巡檢首圖破圖救援
-        document.querySelectorAll('.post-thumb-link img').forEach((img) => {
-          if (img.complete && img.naturalWidth === 0) {
-            window.recoverPixnetImg(img);
-          }
-        });
+  paginationBar.innerHTML = '';
+  if (totalPages > 1) {
+    const createBtn = (label, targetPage, isActive = false, isDisabled = false) => {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn' + (isActive ? ' active' : '');
+      btn.innerText = label;
+      btn.disabled = isDisabled;
+      if (isDisabled) btn.style.opacity = '0.45';
+      if (!isDisabled && !isActive) {
+        btn.onclick = () => {
+          renderPage(targetPage);
+          window.scrollTo({ top: 300, behavior: 'smooth' });
+        };
+      }
+      return btn;
+    };
 
-        // 3. 更新單篇文章觀看數 & 側邊欄本日/累積人氣
-        let extraSum = 0;
-        document.querySelectorAll('.view-count').forEach((el) => {
-          const slug = el.getAttribute('data-slug');
-          const base = parseInt(el.getAttribute('data-base') || '5280', 10);
-          const extra = parseInt(localStorage.getItem('views_' + slug) || '0', 10);
-          extraSum += extra;
-          el.textContent = (base + extra).toLocaleString();
-        });
+    // 上一頁
+    paginationBar.appendChild(createBtn('‹ 上一頁', page - 1, false, page === 1));
 
-        const todayKey = 'daily_hits_' + new Date().toISOString().slice(0, 10);
-        const dailyVal = parseInt(localStorage.getItem(todayKey) || '386', 10) + 1;
-        localStorage.setItem(todayKey, String(dailyVal));
-        const dailyEl = document.getElementById('dailyHits');
-        const totalEl = document.getElementById('totalHits');
-        if (dailyEl) dailyEl.textContent = dailyVal.toLocaleString();
-        if (totalEl) totalEl.textContent = (totalBaseViews + extraSum + dailyVal).toLocaleString();
+    // 智慧縮略頁碼（最多顯示首尾頁與當前頁前後 1 頁，中間以 ⋯ 縮略，絕不整排擠爆）
+    const pageList = [];
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= page - 1 && i <= page + 1)) {
+        pageList.push(i);
+      } else if (pageList[pageList.length - 1] !== '...') {
+        pageList.push('...');
+      }
+    }
 
-        // 4. 智慧縮略分頁邏輯
-        const ITEMS_PER_PAGE = 10;
-        let currentPage = 1;
-        let currentCat = 'all';
-        let currentQuery = '';
+    pageList.forEach(p => {
+      if (p === '...') {
+        const dots = document.createElement('span');
+        dots.innerText = '⋯';
+        dots.style.padding = '0 6px';
+        dots.style.color = '#8C7A6B';
+        dots.style.fontWeight = '700';
+        paginationBar.appendChild(dots);
+      } else {
+        paginationBar.appendChild(createBtn(String(p), p, p === page, false));
+      }
+    });
 
-        const allCards = Array.from(document.querySelectorAll('.post-card'));
-        const paginationWrap = document.getElementById('paginationWrap');
+    // 下一頁
+    paginationBar.appendChild(createBtn('下一頁 ›', page + 1, false, page === totalPages));
+  }
+}
 
-        function matchCategory(cardCat, selected) {
-          if (selected === 'all') return true;
-          if (cardCat.includes(selected)) return true;
-          if (selected === '台灣美食' && /美食|食記|Eat/.test(cardCat)) return true;
-          if (selected === '國內外旅遊' && /旅遊|Travel/.test(cardCat)) return true;
-          if (selected === '質感保養' && /保養|住宿|彩妝|Beauty/.test(cardCat)) return true;
-          if (selected === '好物開箱' && /開箱|生活|攝影|寵物/.test(cardCat)) return true;
-          if (selected === '好物團購' && /團購/.test(cardCat)) return true;
-          return false;
-        }
+renderPage(1);
 
-        function getFilteredCards() {
-          return allCards.filter((c) => {
-            const cardCat = c.getAttribute('data-category') || '';
-            const title = (c.getAttribute('data-title') || '').toLowerCase();
-            return matchCategory(cardCat, currentCat) && (!currentQuery || title.includes(currentQuery));
-          });
-        }
-
-        function renderPage() {
-          const filtered = getFilteredCards();
-          const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-          if (currentPage > totalPages) currentPage = totalPages;
-
-          allCards.forEach((c) => (c.style.display = 'none'));
-          const start = (currentPage - 1) * ITEMS_PER_PAGE;
-          const end = start + ITEMS_PER_PAGE;
-          filtered.slice(start, end).forEach((c) => (c.style.display = 'block'));
-
-          renderPaginationButtons(totalPages);
-        }
-
-        function renderPaginationButtons(totalPages) {
-          if (!paginationWrap) return;
-          paginationWrap.innerHTML = '';
-          if (totalPages <= 1) return;
-
-          const createBtn = (label, targetPage, disabled = false, active = false) => {
-            const b = document.createElement('button');
-            b.className = 'page-btn' + (active ? ' active' : '');
-            b.textContent = label;
-            b.disabled = disabled;
-            if (!disabled && !active) {
-              b.addEventListener('click', () => {
-                currentPage = targetPage;
-                renderPage();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              });
-            }
-            return b;
-          };
-
-          paginationWrap.appendChild(createBtn('‹ 上一頁', currentPage - 1, currentPage === 1));
-
-          const pages = [];
-          for (let i = 1; i <= totalPages; i++) {
-            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-              pages.push(i);
-            } else if (pages[pages.length - 1] !== '...') {
-              pages.push('...');
-            }
-          }
-
-          pages.forEach((p) => {
-            if (p === '...') {
-              const span = document.createElement('span');
-              span.className = 'page-dots';
-              span.textContent = '⋯';
-              paginationWrap.appendChild(span);
-            } else {
-              paginationWrap.appendChild(createBtn(String(p), p, false, p === currentPage));
-            }
-          });
-
-          paginationWrap.appendChild(createBtn('下一頁 ›', currentPage + 1, currentPage === totalPages));
-        }
-
-        const navBtns = document.querySelectorAll('.nav-btn');
-        function setCategoryFilter(cat) {
-          currentCat = cat;
-          currentPage = 1;
-          navBtns.forEach((b) => {
-            b.classList.toggle('active', b.getAttribute('data-cat') === cat);
-          });
-          renderPage();
-        }
-
-        navBtns.forEach((btn) => {
-          btn.addEventListener('click', () => setCategoryFilter(btn.getAttribute('data-cat') || 'all'));
-        });
-
-        document.querySelectorAll('.side-cat-btn').forEach((btn) => {
-          btn.addEventListener('click', () => {
-            setCategoryFilter(btn.getAttribute('data-side-cat') || 'all');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
-        });
-
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-          searchInput.addEventListener('input', (e) => {
-            currentQuery = e.target.value.toLowerCase().trim();
-            currentPage = 1;
-            renderPage();
-          });
-        }
-
-        const logoutBtn = document.getElementById('adminLogoutBtn');
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', () => {
-            if (window.netlifyIdentity) window.netlifyIdentity.logout();
-            alert('已登出管理員模式');
-          });
-        }
-
-        renderPage();
-      });
-    </script>
-  </body>
-</html>
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+  searchInput.addEventListener('input', e => {
+    const keyword = e.target.value.toLowerCase().trim();
+    if (!keyword) {
+      renderPage(1);
+      return;
+    }
+    paginationBar.innerHTML = '';
+    allCards.forEach(card => {
+      card.style.display = card.innerText.toLowerCase().includes(keyword) ? 'block' : 'none';
+    });
+  });
+}
+</script>
+</BaseLayout>

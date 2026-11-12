@@ -2,122 +2,160 @@ backend:
   name: git-gateway
   branch: main
 
-# 將後台系統介面與「發布/儲存」按鈕全部改為繁體中文
-locale: "zh_Hant"
-
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
+
+locale: "zh_Hant"
 
 collections:
   - name: "blog"
     label: "📝 部落格文章管理 (含4大模板與SEO)"
+    label_singular: "文章"
     folder: "src/content/blog"
     create: true
-    slug: "{{slug}}"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    summary: "{{title}} ({{pubDate}} | {{category}})"
     fields:
-      - { label: "文章標題", name: "title", widget: "string" }
-      - { label: "📝 存為草稿？(打勾則暫不公開於前台，取消打勾即正式發布)", name: "draft", widget: "boolean", default: false, required: false }
-      - { label: "發布日期 (設定未來時間即可預約定時發布)", name: "pubDate", widget: "datetime" }
-      - { label: "👁️ 觀看次數起始值 (預設從 5000 起跳，可自由修改)", name: "baseViews", widget: "number", default: 5000, required: false }
-      - { label: "📌 是否設為首頁置頂？", name: "pinned", widget: "boolean", default: false, required: false }
-      - { label: "文章主分類", name: "category", widget: "select", options: ["台灣美食", "國內外旅遊", "質感保養", "好物開箱", "好物團購"], default: "台灣美食" }
-      - { label: "🎯 選擇文章排版模板 (選取後下方內文將自動帶入對應模板)", name: "templateType", widget: "select", options: ["一般文章", "☕ 咖啡廳食記模板", "✈️ 旅遊攻略模板", "🏨 住宿開箱模板", "🛍️ 好物評測模板"], default: "一般文章" }
-      - { label: "🏷️ 文章標籤 Tags", name: "tags", widget: "list", default: ["私藏推薦"], required: false }
-      - { label: "文章首頁摘要描述", name: "description", widget: "text" }
-
-      - label: "🔍 SEO 搜尋引擎最佳化專屬欄位 (展開設定)"
-        name: "seo"
-        widget: "object"
-        collapsed: true
-        fields:
-          - { label: "SEO 搜尋標題 (Google 顯示標題)", name: "seoTitle", widget: "string", required: false }
-          - { label: "SEO 搜尋描述 (Meta Description)", name: "seoDescription", widget: "text", required: false }
-          - { label: "社群分享封面圖 (LINE/FB/IG 分享縮圖 OG Image)", name: "ogImage", widget: "image", required: false }
-          - { label: "首圖圖片 ALT 替代文字 (提升圖片搜尋排名)", name: "imageAlt", widget: "string", required: false }
-
-      - { label: "文章封面首圖", name: "heroImage", widget: "image", required: false }
-      - { label: "文章主要內容 (Pages / Word 自由視覺化排版，支援直接反白改色與從 Pages 複製貼上)", name: "body", widget: "richtext" }
-
-      - label: "📍 店家 / 景點資訊小卡片 (選填)"
-        name: "placeInfo"
-        widget: "object"
-        collapsed: true
+      - label: "📋 快速套用文章排版模板 (切換將自動帶入下方內文框架)"
+        name: "templateType"
+        widget: "select"
         required: false
-        fields:
-          - { label: "啟用店家資訊卡？", name: "enabled", widget: "boolean", default: false, required: false }
-          - { label: "店家/景點名稱", name: "name", widget: "string", required: false }
-          - { label: "地址", name: "address", widget: "string", required: false }
-          - { label: "營業時間", name: "hours", widget: "string", required: false }
-          - { label: "聯絡電話", name: "phone", widget: "string", required: false }
-          - { label: "推薦指數", name: "rating", widget: "string", required: false }
-          - { label: "Google Maps 導航網址", name: "mapUrl", widget: "string", required: false }
+        options:
+          - { label: "✨ 不套用模板（自由發揮）", value: "none" }
+          - { label: "🍜 模板一：美味食記探店模板", value: "food" }
+          - { label: "✈️ 模板二：國內外旅遊攻略模板", value: "travel" }
+          - { label: "🏨 模板三：質感住宿開箱模板", value: "stay" }
+          - { label: "🛍️ 模板四：質感好物 / 保養開箱模板", value: "product" }
+        default: "none"
 
-      - label: "🛍️ 好物推薦 / 團購導購卡片 (含雲端點擊成效追蹤)"
-        name: "promoCard"
-        widget: "object"
-        collapsed: true
+      - label: "📌 置頂此篇文章 (打勾後將優先固定於首頁第一篇)"
+        name: "pinned"
+        widget: "boolean"
+        default: false
         required: false
-        fields:
-          - { label: "啟用團購導購卡？", name: "enabled", widget: "boolean", default: false, required: false }
-          - { label: "商品名稱 / 開團標題", name: "title", widget: "string", required: false }
-          - { label: "商品圖片", name: "image", widget: "image", required: false }
-          - { label: "優惠價標示", name: "price", widget: "string", required: false }
-          - { label: "推薦短評", name: "summary", widget: "text", required: false }
-          - { label: "按鈕文字", name: "buttonText", widget: "string", default: "🔥 點此前往開團優惠賣場", required: false }
-          - { label: "團購購買網址", name: "url", widget: "string", required: false }
-          - { label: "📊 導購成效追蹤代碼 ID (英文數字，如: skincare-promo-11)", name: "trackingId", widget: "string", required: false }
+
+      - label: "🙈 設為草稿 (打勾後前台將自動隱藏)"
+        name: "draft"
+        widget: "boolean"
+        default: false
+        required: false
+
+      - label: "📌 文章標題"
+        name: "title"
+        widget: "string"
+
+      - label: "📂 文章分類"
+        name: "category"
+        widget: "select"
+        options:
+          - "台灣美食"
+          - "國內外旅遊"
+          - "質感保養"
+          - "好物開箱"
+          - "好物團購"
+        default: "台灣美食"
+
+      - label: "📅 發布日期 (若設定未來日期，時間到才會自動顯示)"
+        name: "pubDate"
+        widget: "datetime"
+        format: "YYYY-MM-DD"
+        date_format: "YYYY-MM-DD"
+        time_format: false
+
+      - label: "🖼️ 文章首圖 / 封面照片 (建議尺寸：寬 1000～1200 px，直式或橫式皆可 100% 完整顯示)"
+        name: "heroImage"
+        widget: "image"
+        required: false
+        hint: "📐【上傳尺寸建議】建議寬度 1000～1200 px（直式、橫式或正方形皆可，前台首頁將 100% 完整顯示整張照片不裁切！）"
+
+      - label: "📝 文章簡短摘要 (選填，首頁將自動擷取內文前 5 行顯示)"
+        name: "description"
+        widget: "text"
+        required: false
+
+      - label: "🔥 初始觀看次數 (預設 5000+ 起跳)"
+        name: "baseViews"
+        widget: "number"
+        default: 5680
+        value_type: "int"
+        min: 0
+
+      - label: "🏷️ 文章標籤 (Tags)"
+        name: "tags"
+        widget: "list"
+        required: false
+        default: ["台中美食", "開箱分享"]
+
+      - label: "✍️ 文章完整內文 (Pages / Word 視覺化編輯器)"
+        name: "body"
+        widget: "richtext"
 
   - name: "settings"
-    label: "⚙️ 網站全站設定 (圖片/分類/跑馬燈/顏色)"
+    label: "🎨 修改版面 / 圖片 / 分類設定"
     files:
-      - name: "site_config"
-        label: "全站外觀與欄位控制台"
+      - name: "siteConfig"
+        label: "⚙️ 全站外觀、Logo、Banner、側邊欄與個人資訊"
         file: "src/data/siteConfig.json"
         fields:
-          - label: "📢 頂部跑馬燈公告"
-            name: "announcement"
-            widget: "object"
-            fields:
-              - { label: "是否顯示？", name: "enabled", widget: "boolean", default: true }
-              - { label: "公告文字", name: "text", widget: "string" }
-              - { label: "跳轉連結", name: "link", widget: "string", required: false }
+          - label: "🏠 網站主標題"
+            name: "siteTitle"
+            widget: "string"
+            required: false
+            default: "哪裏。DOKO"
 
-          - label: "🎨 頂部 Logo 與 Banner"
-            name: "header"
-            widget: "object"
-            fields:
-              - { label: "網站名稱", name: "logoText", widget: "string" }
-              - { label: "🌟 瀏覽器分頁小圖示 (Favicon，取代預設 Netlify 圖示)", name: "favicon", widget: "image", required: false }
-              - { label: "左上角 Logo 圖片 (取代網站文字)", name: "logoImage", widget: "image", required: false }
-              - { label: "Banner 主標題", name: "bannerTitle", widget: "string" }
-              - { label: "Banner 副標題", name: "bannerSubtitle", widget: "string" }
-              - { label: "Banner 背景圖", name: "bannerBgImage", widget: "image", required: false }
+          - label: "✨ 網站副標題"
+            name: "siteSubtitle"
+            widget: "string"
+            required: false
+            default: "Travel。Eat。Beauty｜美食情報・旅遊・開箱分享"
 
-          - label: "🗂️ 頂部分類選單"
-            name: "categories"
-            widget: "list"
-            fields:
-              - { label: "分類名稱", name: "name", widget: "string" }
+          - label: "📢 頂部跑馬燈公告文字"
+            name: "marqueeText"
+            widget: "string"
+            required: false
 
-          - label: "👤 右側邊欄與 IG 設定"
-            name: "sidebar"
-            widget: "object"
-            fields:
-              - { label: "個人簡介標題", name: "profileTitle", widget: "string" }
-              - { label: "頭貼", name: "avatar", widget: "image" }
-              - { label: "自我介紹", name: "bio", widget: "text" }
-              - { label: "聯絡提示", name: "contactNote", widget: "string" }
-              - { label: "IG 帳號", name: "igAccount", widget: "string" }
-              - { label: "顯示 IG 牆", name: "showIgFeed", widget: "boolean", default: true }
-              - { label: "顯示側邊欄廣告", name: "showSidebarAd", widget: "boolean", default: true }
-              - { label: "廣告 HTML/文字", name: "sidebarAdContent", widget: "text", required: false }
+          - label: "🖼️ 網站左上角 Logo 圖片 (建議尺寸：200 × 200 px 正方形，或 240 × 80 px 橫式透明 PNG)"
+            name: "logoImage"
+            widget: "image"
+            required: false
+            hint: "📐【上傳尺寸建議】正方形 Logo 請上傳 200 × 200 px（1:1）；橫式 Logo 請上傳 240 × 80 px（透明背景 PNG 或 JPG 皆可）。"
 
-          - label: "🖌️ 網站顏色微調"
-            name: "colors"
-            widget: "object"
-            fields:
-              - { label: "全站背景色", name: "bgMain", widget: "color", default: "#FAF6F0" }
-              - { label: "奶茶色底框", name: "milkTeaBg", widget: "color", default: "#E6D5C3" }
-              - { label: "深奶茶色按鈕", name: "milkTeaDark", widget: "color", default: "#C8AD90" }
+          - label: "🏞️ 首頁頂部大橫幅 Banner 圖片 (建議尺寸：1920 × 450 px 或 1200 × 320 px 橫式長圖)"
+            name: "bannerImage"
+            widget: "image"
+            required: false
+            hint: "📐【上傳尺寸建議】最佳尺寸為 1920 × 450 px 或 1200 × 320 px（比例約 4:1 的橫式寬幅圖），檔案建議 1MB 以內。"
 
-          - { label: "📄 首頁每頁顯示幾篇", name: "postsPerPage", widget: "number", default: 6 }
+          - label: "👤 側邊欄個人圓形頭像 (建議尺寸：400 × 400 px 正方形 1:1)"
+            name: "authorAvatar"
+            widget: "image"
+            required: false
+            hint: "📐【上傳尺寸建議】請上傳 400 × 400 px（1:1 正方形）的清晰人像或品牌圖，前台會自動裁切為圓形頭像。"
+
+          - label: "📛 側邊欄作者名稱"
+            name: "authorName"
+            widget: "string"
+            required: false
+            default: "哪裏。DOKO"
+
+          - label: "💬 側邊欄個人簡介"
+            name: "authorBio"
+            widget: "text"
+            required: false
+
+          - label: "📸 Instagram 連結"
+            name: "instagramUrl"
+            widget: "string"
+            required: false
+
+          - label: "📣 側邊欄廣告圖片 (建議尺寸：600 × 600 px 正方形 或 600 × 800 px 直式圖)"
+            name: "adImage"
+            widget: "image"
+            required: false
+            hint: "📐【上傳尺寸建議】寬度建議 600 px（正方形 600 × 600 px 或直式 600 × 800 px 皆可完美自適應）。"
+
+          - label: "📄 首頁每頁顯示文章數量"
+            name: "postsPerPage"
+            widget: "number"
+            default: 6
+            value_type: "int"
