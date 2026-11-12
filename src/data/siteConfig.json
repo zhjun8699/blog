@@ -7,8 +7,8 @@
   },
   "header": {
     "logoText": "哪裏。DOKO",
-    "logoImage": "",
-    "favicon": "",
+    "logoImage": "/images/uploads/doko-logo.png",
+    "favicon": "/images/uploads/doko-logo.png",
     "bannerTitle": "哪裏。DOKO",
     "bannerSubtitle": "Travel。Eat。Beauty 喜歡新鮮，熱愛體驗，勇於探索，樂於分享。",
     "bannerBgImage": ""
