@@ -44,5 +44,6 @@
     "milkTeaBg": "#E6D5C3",
     "milkTeaDark": "#C8AD90"
   },
-  "postsPerPage": 6
+  "postsPerPage": 6,
+  "logoImage": "/images/uploads/doko-logo-200-x-200-像素-.png"
 }
