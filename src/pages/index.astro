@@ -5,7 +5,7 @@ import siteConfig from '../data/siteConfig.json';
 
 const now = new Date();
 const posts = (await getCollection('blog'))
-  .filter(post => new Date(post.data.pubDate) <= now)
+  .filter(post => !post.data.draft && new Date(post.data.pubDate) <= now)
   .sort((a, b) => {
     if (a.data.pinned && !b.data.pinned) return -1;
     if (!a.data.pinned && b.data.pinned) return 1;
