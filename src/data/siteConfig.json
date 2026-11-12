@@ -9,7 +9,8 @@
     "logoImage": "",
     "bannerTitle": "哪裏。DOKO",
     "bannerSubtitle": "美食探店 ‧ 深度旅遊 ‧ 質感保養 ‧ 精選團購",
-    "bannerBgImage": ""
+    "bannerBgImage": "",
+    "favicon": "/images/uploads/doko-logo.jpg"
   },
   "categories": [
     {
