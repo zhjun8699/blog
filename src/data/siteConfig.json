@@ -7,8 +7,8 @@
   },
   "header": {
     "logoText": "哪裏。DOKO",
-    "logoImage": "/images/doko-logo.png",
-    "favicon": "/images/doko-logo.png",
+    "logoImage": "/images/uploads/doko-logo.png",
+    "favicon": "/images/uploads/doko-logo.png",
     "bannerTitle": "哪裏。DOKO",
     "bannerSubtitle": "Travel。Eat。Beauty 喜歡新鮮，熱愛體驗，勇於探索，樂於分享。",
     "bannerBgImage": ""
@@ -32,7 +32,7 @@
   ],
   "sidebar": {
     "profileTitle": "關於 哪裏。DOKO",
-    "avatar": "/images/doko-logo.png",
+    "avatar": "/images/uploads/doko-logo.png",
     "bio": "Hi！歡迎來到我的部落格！\n熱愛發掘各地美食、旅遊景點與質感生活好物，分享最真實紀錄！",
     "contactNote": "📩 合作邀約歡迎來信：k81928@gmail.com 或私訊 IG 小盒子",
     "igAccount": "chun._.1997",
