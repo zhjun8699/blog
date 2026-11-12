@@ -21,7 +21,7 @@ collections:
       - { label: "👁️ 觀看次數起始值 (預設從 5000 起跳，可自由修改)", name: "baseViews", widget: "number", default: 5000, required: false }
       - { label: "📌 是否設為首頁置頂？", name: "pinned", widget: "boolean", default: false, required: false }
       - { label: "文章主分類", name: "category", widget: "select", options: ["台灣美食", "國內外旅遊", "質感保養", "好物開箱", "好物團購"], default: "台灣美食" }
-      - { label: "🎯 選擇文章排版模板標籤", name: "templateType", widget: "select", options: ["一般文章", "☕ 咖啡廳食記模板", "✈️ 旅遊攻略模板", "🏨 住宿開箱模板", "🛍️ 好物評測模板"], default: "一般文章" }
+      - { label: "🎯 選擇文章排版模板 (選取後下方內文將自動帶入對應模板)", name: "templateType", widget: "select", options: ["一般文章", "☕ 咖啡廳食記模板", "✈️ 旅遊攻略模板", "🏨 住宿開箱模板", "🛍️ 好物評測模板"], default: "一般文章" }
       - { label: "🏷️ 文章標籤 Tags", name: "tags", widget: "list", default: ["私藏推薦"], required: false }
       - { label: "文章首頁摘要描述", name: "description", widget: "text" }
 
@@ -36,7 +36,7 @@ collections:
           - { label: "首圖圖片 ALT 替代文字 (提升圖片搜尋排名)", name: "imageAlt", widget: "string", required: false }
 
       - { label: "文章封面首圖", name: "heroImage", widget: "image", required: false }
-      - { label: "文章主要內容 (點工具列「＋」可插圖、改字色、畫螢光筆；或點下方黑條複製模板)", name: "body", widget: "markdown" }
+      - { label: "文章主要內容 (Pages / Word 自由視覺化排版，支援直接反白改色與從 Pages 複製貼上)", name: "body", widget: "richtext" }
 
       - label: "📍 店家 / 景點資訊小卡片 (選填)"
         name: "placeInfo"
