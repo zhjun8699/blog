@@ -2,21 +2,23 @@ backend:
   name: git-gateway
   branch: main
 
-# 2. 啟用草稿與審核工作流 (可將文章存為草稿 Draft，確認無誤再發布)
-publish_mode: editorial_workflow
+# 3. 將後台系統介面與「發布/儲存」按鈕全部改為繁體中文！
+locale: "zh_Hant"
 
 media_folder: "public/images/uploads"
 public_folder: "/images/uploads"
 
 collections:
   - name: "blog"
-    label: "📝 部落格文章管理 (含4大模板、草稿與SEO)"
+    label: "📝 部落格文章管理 (含4大模板與SEO)"
     folder: "src/content/blog"
     create: true
     slug: "{{slug}}"
     fields:
       - { label: "文章標題", name: "title", widget: "string" }
+      - { label: "📝 存為草稿？(打勾則暫不公開於前台，取消打勾即正式發布)", name: "draft", widget: "boolean", default: false, required: false }
       - { label: "發布日期 (設定未來時間即可預約定時發布)", name: "pubDate", widget: "datetime" }
+      - { label: "👁️ 觀看次數起始值 (預設從 5000 起跳，可自由修改)", name: "baseViews", widget: "number", default: 5000, required: false }
       - { label: "SEO 自訂網址代稱 (Slug，例如: taichung-cafe-01)", name: "slug", widget: "string", required: false }
       - { label: "📌 是否設為首頁置頂？", name: "pinned", widget: "boolean", default: false, required: false }
       - { label: "文章主分類", name: "category", widget: "select", options: ["台灣美食", "國內外旅遊", "質感保養", "好物開箱", "好物團購"], default: "台灣美食" }
@@ -24,7 +26,6 @@ collections:
       - { label: "🏷️ 文章標籤 Tags", name: "tags", widget: "list", default: ["私藏推薦"], required: false }
       - { label: "文章首頁摘要描述", name: "description", widget: "text" }
 
-      # 3. 獨立 SEO 編輯欄位
       - label: "🔍 SEO 搜尋引擎最佳化專屬欄位 (展開設定)"
         name: "seo"
         widget: "object"
@@ -65,7 +66,7 @@ collections:
           - { label: "推薦短評", name: "summary", widget: "text", required: false }
           - { label: "按鈕文字", name: "buttonText", widget: "string", default: "🔥 點此前往開團優惠賣場", required: false }
           - { label: "團購購買網址", name: "url", widget: "string", required: false }
-          - { label: "📊 導購成效追蹤代碼 ID (英文數字，如: skincare-promo-11，管理員可在前台直接看總點擊數)", name: "trackingId", widget: "string", required: false }
+          - { label: "📊 導購成效追蹤代碼 ID (英文數字，如: skincare-promo-11)", name: "trackingId", widget: "string", required: false }
 
   - name: "settings"
     label: "⚙️ 網站全站設定 (圖片/分類/跑馬燈/顏色)"
@@ -87,7 +88,8 @@ collections:
             widget: "object"
             fields:
               - { label: "網站名稱", name: "logoText", widget: "string" }
-              - { label: "Logo 圖片", name: "logoImage", widget: "image", required: false }
+              - { label: "🌟 瀏覽器分頁小圖示 (Favicon，取代預設圖示)", name: "favicon", widget: "image", required: false }
+              - { label: "左上角 Logo 圖片 (取代網站文字)", name: "logoImage", widget: "image", required: false }
               - { label: "Banner 主標題", name: "bannerTitle", widget: "string" }
               - { label: "Banner 副標題", name: "bannerSubtitle", widget: "string" }
               - { label: "Banner 背景圖", name: "bannerBgImage", widget: "image", required: false }
