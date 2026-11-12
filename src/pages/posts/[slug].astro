@@ -15,6 +15,7 @@ const { Content } = await post.render();
 const d = new Date(post.data.pubDate);
 const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
 const baseViews = post.data.baseViews || 5280;
+const siteTitle = siteConfig.title || siteConfig.siteTitle || '哪裏。DOKO';
 ---
 
 <!doctype html>
@@ -23,8 +24,44 @@ const baseViews = post.data.baseViews || 5280;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
-    <title>{post.data.title} | {siteConfig.siteTitle}</title>
+    <title>{post.data.title} | {siteTitle}</title>
     <meta name="description" content={post.data.description} />
+    <script is:inline>
+      window.recoverPixnetImg = function(img) {
+        if (!img) return;
+        const step = parseInt(img.dataset.retryStep || '0', 10);
+        const rawUrl = img.dataset.rawSrc || img.getAttribute('src') || '';
+        if (!rawUrl) return;
+        img.dataset.rawSrc = rawUrl;
+
+        let cleanPath = rawUrl
+          .replace(/^https?:\/\/[^/]+\//i, '')
+          .replace(/^blog\//i, '');
+        let noSuffixPath = cleanPath.replace(/_[nbmsq]\.(jpg|jpeg|png|gif|webp)/i, '.$1');
+
+        if (step === 0) {
+          img.dataset.retryStep = '1';
+          img.src = 'https://pic.pimg.tw/' + noSuffixPath;
+        } else if (step === 1) {
+          img.dataset.retryStep = '2';
+          img.src = 'https://pimg.1px.tw/' + noSuffixPath;
+        } else if (step === 2) {
+          img.dataset.retryStep = '3';
+          img.src = 'https://pimg.1px.tw/blog/' + noSuffixPath;
+        } else if (step === 3) {
+          img.dataset.retryStep = '4';
+          img.src = 'https://s.pixfs.net/' + cleanPath;
+        } else if (step === 4) {
+          img.dataset.retryStep = '5';
+          img.src = 'https://wsrv.nl/?url=' + encodeURIComponent('pic.pimg.tw/' + noSuffixPath);
+        } else if (step === 5) {
+          img.dataset.retryStep = '6';
+          img.src = 'https://web.archive.org/web/2/https://pic.pimg.tw/' + cleanPath;
+        } else {
+          img.style.display = 'none';
+        }
+      };
+    </script>
     <style>
       * { box-sizing: border-box; }
       body {
@@ -32,6 +69,7 @@ const baseViews = post.data.baseViews || 5280;
         font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
         background-color: #FAF6F0;
         color: #3D352E;
+        padding-bottom: 80px;
       }
       .top-bar {
         background: #FFFFFF;
@@ -146,13 +184,39 @@ const baseViews = post.data.baseViews || 5280;
         font-size: 13px;
         color: #6E6259;
       }
+      .floating-admin-bar {
+        position: fixed;
+        bottom: 20px;
+        right: 24px;
+        z-index: 9999;
+        background: rgba(38, 33, 29, 0.95);
+        backdrop-filter: blur(8px);
+        padding: 8px 14px;
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+      }
+      .admin-pill {
+        background: #FAF6F0;
+        color: #3D352E;
+        text-decoration: none;
+        padding: 6px 13px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .admin-pill.gold {
+        background: #E6C89C;
+      }
     </style>
   </head>
   <body>
     <header class="top-bar">
       <div class="top-bar-inner">
-        <a href="/" class="back-btn">← 返回 {siteConfig.siteTitle} 首頁</a>
-        <a href={`/admin/#/collections/blog/entries/${post.slug}`} style="font-size:13px;color:#9C7A54;text-decoration:none;font-weight:600;">✏️ 編輯此篇文章</a>
+        <a href="/" class="back-btn">← 返回 {siteTitle} 首頁</a>
+        <a href={`/admin/#/collections/blog/entries/${post.slug}`} style="font-size:13px;color:#9C7A54;text-decoration:none;font-weight:700;">✏️ 在後台編輯此篇</a>
       </div>
     </header>
 
@@ -178,8 +242,13 @@ const baseViews = post.data.baseViews || 5280;
       )}
     </main>
 
+    <div class="floating-admin-bar">
+      <a href={`/admin/#/collections/blog/entries/${post.slug}`} class="admin-pill gold">✏️ 編輯這篇文章</a>
+      <a href="/admin/#/collections/blog/new" class="admin-pill">＋ 新增文章</a>
+      <a href="/admin/" class="admin-pill">⚙️ 後台首頁</a>
+    </div>
+
     <script is:inline define:vars={{ slug: post.slug, baseViews }}>
-      // 1. 觀看次數自動 +1
       const key = 'views_' + slug;
       const currentExtra = parseInt(localStorage.getItem(key) || '0', 10) + 1;
       localStorage.setItem(key, String(currentExtra));
@@ -188,38 +257,11 @@ const baseViews = post.data.baseViews || 5280;
         counterEl.textContent = (baseViews + currentExtra).toLocaleString();
       }
 
-      // 2. 痞客邦壞死圖片 4 重自動救援引擎
-      function recoverImg(img) {
-        if (!img || !img.src) return;
-        const step = parseInt(img.dataset.retryStep || '0', 10);
-        const rawUrl = img.dataset.rawSrc || img.src;
-        img.dataset.rawSrc = rawUrl;
-
-        if (step === 0) {
-          img.dataset.retryStep = '1';
-          let u = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace('pimg.1px.tw/', 'pic.pimg.tw/');
-          u = u.replace(/_[nbmsq]\.(jpg|jpeg|png|gif|webp)/i, '.$1');
-          img.src = u;
-        } else if (step === 1) {
-          img.dataset.retryStep = '2';
-          let u = rawUrl.replace('pimg.1px.tw/blog/', 's.pimg.tw/album/').replace('pimg.1px.tw/', 's.pimg.tw/');
-          img.src = u;
-        } else if (step === 2) {
-          img.dataset.retryStep = '3';
-          let clean = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace(/^https?:\/\//, '');
-          img.src = 'https://wsrv.nl/?url=' + encodeURIComponent(clean);
-        } else if (step === 3) {
-          img.dataset.retryStep = '4';
-          let oldPicUrl = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace('pimg.1px.tw/', 'pic.pimg.tw/');
-          img.src = 'https://web.archive.org/web/2/' + oldPicUrl;
-        }
-      }
-
       document.querySelectorAll('#articleBody img').forEach((img) => {
         img.setAttribute('referrerpolicy', 'no-referrer');
-        img.addEventListener('error', function() { recoverImg(this); });
+        img.addEventListener('error', function() { window.recoverPixnetImg(this); });
         if (img.complete && img.naturalWidth === 0) {
-          recoverImg(img);
+          window.recoverPixnetImg(img);
         }
       });
     </script>
