@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import siteConfig from '../data/siteConfig.json';
-import '../styles/theme.css';
 
 const allPosts = await getCollection('blog', ({ data }) => {
   return data.draft !== true;
@@ -403,7 +402,7 @@ const categories = siteConfig.categories || [
             return (
               <article class="post-card" data-category={post.data.category} data-title={post.data.title} data-slug={post.slug}>
                 <div class="post-title-box">
-                  <h2><a href={`/blog/${post.slug}/`}>{post.data.title}</a></h2>
+                  <h2><a href={`/posts/${post.slug}/`}>{post.data.title}</a></h2>
                 </div>
 
                 <div class="post-meta">
@@ -414,7 +413,7 @@ const categories = siteConfig.categories || [
                 </div>
 
                 {post.data.heroImage && (
-                  <a href={`/blog/${post.slug}/`} class="post-thumb-link">
+                  <a href={`/posts/${post.slug}/`} class="post-thumb-link">
                     <img
                       src={post.data.heroImage}
                       alt={post.data.title}
@@ -428,7 +427,7 @@ const categories = siteConfig.categories || [
                 <div class="post-excerpt-5lines">{fiveLines}</div>
 
                 <div class="card-footer">
-                  <a href={`/blog/${post.slug}/`} class="read-more-btn">(繼續閱讀...)</a>
+                  <a href={`/posts/${post.slug}/`} class="read-more-btn">(繼續閱讀...)</a>
                 </div>
               </article>
             );
@@ -461,23 +460,19 @@ const categories = siteConfig.categories || [
         img.dataset.rawSrc = rawUrl;
 
         if (step === 0) {
-          // 第 1 重救援：轉為 pic.pimg.tw 並移除縮圖參數 (_n, _b, _m)
           img.dataset.retryStep = '1';
           let u = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace('pimg.1px.tw/', 'pic.pimg.tw/');
           u = u.replace(/_[nbmsq]\.(jpg|jpeg|png|gif|webp)/i, '.$1');
           img.src = u;
         } else if (step === 1) {
-          // 第 2 重救援：嘗試 s.pimg.tw 備援主機
           img.dataset.retryStep = '2';
           let u = rawUrl.replace('pimg.1px.tw/blog/', 's.pimg.tw/album/').replace('pimg.1px.tw/', 's.pimg.tw/');
           img.src = u;
         } else if (step === 2) {
-          // 第 3 重救援：使用全球圖片快取代理 (wsrv.nl)
           img.dataset.retryStep = '3';
           let clean = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace(/^https?:\/\//, '');
           img.src = 'https://wsrv.nl/?url=' + encodeURIComponent(clean);
         } else if (step === 3) {
-          // 第 4 重救援：網際網路時光機 (Wayback Machine) 備份庫
           img.dataset.retryStep = '4';
           let oldPicUrl = rawUrl.replace('pimg.1px.tw/blog/', 'pic.pimg.tw/').replace('pimg.1px.tw/', 'pic.pimg.tw/');
           img.src = 'https://web.archive.org/web/2/' + oldPicUrl;
@@ -547,10 +542,8 @@ const categories = siteConfig.categories || [
             return b;
           };
 
-          // 上一頁按鈕
           paginationWrap.appendChild(createBtn('‹ 上一頁', currentPage - 1, currentPage === 1));
 
-          // 智慧計算頁碼：只顯示第 1 頁、最後 1 頁，以及當前頁的前後 1 頁，中間用 ... 縮略
           const pages = [];
           for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
@@ -571,11 +564,9 @@ const categories = siteConfig.categories || [
             }
           });
 
-          // 下一頁按鈕
           paginationWrap.appendChild(createBtn('下一頁 ›', currentPage + 1, currentPage === totalPages));
         }
 
-        // 綁定分類切換與搜尋
         const navBtns = document.querySelectorAll('.nav-btn');
         navBtns.forEach((btn) => {
           btn.addEventListener('click', () => {
@@ -603,7 +594,6 @@ const categories = siteConfig.categories || [
           });
         }
 
-        // 初次渲染第 1 頁
         renderPage();
       });
     </script>
