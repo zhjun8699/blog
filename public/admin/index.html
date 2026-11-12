@@ -11,153 +11,38 @@
   <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
   <style>
-    /* 後台內建編輯器美化 */
-    [data-slate-editor="true"] {
-      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif !important;
-      font-size: 16px !important;
-      line-height: 1.8 !important;
-      background: #FAF6F0 !important;
-      padding: 20px !important;
-      border-radius: 8px;
-    }
-    [data-slate-editor="true"] h2 {
-      background-color: #E6D5C3;
-      color: #3D352E;
-      padding: 8px 14px;
-      border-radius: 6px;
-      border-left: 5px solid #C8AD90;
-    }
-
-    /* 底部懸浮按鈕列 */
-    .template-helper-bar {
-      position: fixed;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #3D352E;
-      color: #FAF6F0;
-      padding: 8px 18px;
-      border-radius: 30px;
-      z-index: 99990;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-family: "PingFang TC", sans-serif;
-      font-size: 13px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-      flex-wrap: wrap;
-      max-width: 96vw;
-      justify-content: center;
-    }
-    .template-helper-bar button {
-      background: #E6D5C3;
-      color: #3D352E;
-      border: none;
-      padding: 6px 13px;
-      border-radius: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 12.5px;
-      transition: all 0.2s;
-    }
-    .template-helper-bar button:hover {
-      background: #C8AD90;
-      color: #fff;
-    }
-    .word-mode-btn {
-      background: linear-gradient(135deg, #FF9A76, #E86F52) !important;
-      color: #fff !important;
-      font-size: 13.5px !important;
-      padding: 7px 16px !important;
-      box-shadow: 0 2px 10px rgba(232, 111, 82, 0.4);
-    }
-
-    /* 📝 Pages / Word 視覺化自由排版工作台視窗 */
-    #wordModalOverlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(30, 26, 23, 0.78);
-      z-index: 99999;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .word-modal-box {
-      background: #FAF6F0;
-      width: 100%;
-      max-width: 1000px;
-      height: 88vh;
-      border-radius: 14px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    /* 原生內嵌的 Pages / Word 視覺化編輯器樣式 */
+    .gavin-richtext-wrapper {
       border: 2px solid #C8AD90;
-    }
-    .word-modal-header {
-      background: #3D352E;
-      color: #FAF6F0;
-      padding: 14px 22px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: "PingFang TC", sans-serif;
-    }
-    .word-modal-header h3 {
-      margin: 0;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .word-modal-actions {
-      display: flex;
-      gap: 10px;
-    }
-    .btn-apply-word {
-      background: #E6D5C3;
-      color: #3D352E;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-weight: 800;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .btn-apply-word:hover { background: #C8AD90; color: #fff; }
-    .btn-close-word {
-      background: transparent;
-      color: #ccc;
-      border: 1px solid #666;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    /* Quill 工具列與編輯區客製化為部落格同款奶茶色外觀 */
-    .ql-toolbar.ql-snow {
-      background: #fff;
-      border-bottom: 2px solid #E6D5C3 !important;
-      padding: 10px 16px !important;
-      font-family: "PingFang TC", sans-serif;
-    }
-    #quillEditorContainer {
-      flex: 1;
-      overflow-y: auto;
-      background: #FFFFFF;
-      margin: 16px 24px;
       border-radius: 10px;
-      border: 1px solid #E6D5C3 !important;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      overflow: hidden;
+      background: #FFFFFF;
+      margin-top: 6px;
+      box-shadow: 0 3px 12px rgba(61, 53, 46, 0.06);
     }
-    .ql-editor {
+    .gavin-richtext-wrapper .ql-toolbar.ql-snow {
+      background: #FAF6F0;
+      border: none !important;
+      border-bottom: 2px solid #E6D5C3 !important;
+      padding: 10px 14px !important;
+      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .gavin-richtext-wrapper .ql-container.ql-snow {
+      border: none !important;
       font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif !important;
       font-size: 16px;
       line-height: 1.85;
       color: #3D352E;
-      padding: 28px 36px !important;
+      background: #FFFFFF;
     }
-    .ql-editor h2 {
+    .gavin-richtext-wrapper .ql-editor {
+      min-height: 480px;
+      padding: 24px 30px !important;
+    }
+    .gavin-richtext-wrapper .ql-editor h2 {
       background-color: #E6D5C3;
       color: #3D352E;
       padding: 10px 18px;
@@ -166,7 +51,7 @@
       font-weight: 700;
       margin: 22px 0 14px 0;
     }
-    .ql-editor h3 {
+    .gavin-richtext-wrapper .ql-editor h3 {
       background-color: #E6D5C3;
       color: #3D352E;
       padding: 8px 14px;
@@ -175,19 +60,113 @@
       font-weight: 700;
       margin: 18px 0 12px 0;
     }
-    .ql-editor img {
+    .gavin-richtext-wrapper .ql-editor img {
       max-width: 100%;
       border-radius: 8px;
       margin: 12px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
   </style>
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
+    const HTML_TEMPLATES = {
+      "☕ 咖啡廳食記模板": `<h2>空間環境與氛圍亮點</h2><p>走進店裡最吸引人的就是採光與裝潢風格，整體的座位配置非常舒適...</p><h3>必拍角落與座位區</h3><ul><li><strong>窗邊採光區：</strong> 午後陽光灑落非常適合拍照。</li><li><strong>室內沙發區：</strong> 桌距寬敞，適合聊天或帶電腦工作。</li></ul><h2>完整菜單與價目表</h2><p>（點上方工具列的「🖼️ 圖片圖示」即可直接插入菜單照片）</p><h2>今日餐點與飲品真實心得</h2><h3>1. 招牌必點餐點名稱 ($價格)</h3><p>口感層次豐富，<span style="color: #b83b2b;"><strong>甜度適中完全不膩口</strong></span>...</p><h3>2. 手沖咖啡 / 特調飲品 ($價格)</h3><p>香氣濃郁，搭配甜點非常剛好！</p><h2>總結與訪店建議</h2><p>推薦給喜歡質感空間與精緻甜點的朋友，建議週末提早前往以免久候！</p>`,
+      "✈️ 旅遊攻略模板": `<h2>行程總覽與行前準備</h2><p>這次規劃的行程涵蓋了必訪景點與私房美食，交通動線順暢不繞路！</p><h3>交通方式與必備票券</h3><ul><li><strong>交通建議：</strong> </li><li><strong>建議停留時間：</strong> </li></ul><h2>第一站：必訪人氣景點亮點</h2><p>現場風景非常壯觀，建議可以在上午時段抵達避開人潮...</p><h2>周邊順遊美食推薦</h2><p>逛完景點後步行即可抵達的在地人氣美食...</p><h2>旅遊小提醒與總結心得</h2><p>整體來說非常適合安排一日遊或多日放鬆行程！</p>`,
+      "🏨 住宿開箱模板": `<h2>飯店位置與交通停車資訊</h2><p>飯店地理位置相當便利，周邊生活機能完善...</p><h2>大廳環境與公共設施開箱</h2><p>辦理入住的櫃檯人員親切，大廳設計充滿質感...</p><h2>房型開箱：空間、床鋪與衛浴細節</h2><h3>臥室與床鋪舒適度</h3><p>採光極佳，床墊軟硬適中，隔音表現也很不錯...</p><h3>衛浴空間與備品</h3><p>乾濕分離設計，洗沐備品香氣療癒...</p><h2>早餐餐點與整體住宿評價</h2><p>隔天早餐種類豐富，整體 CP 值相當高！</p>`,
+      "🛍️ 好物評測模板": `<h2>為什麼會入手這款好物？(痛點與需求)</h2><p>平常在挑選這類產品時，最在意的就是實用性、質地與真實 CP 值...</p><h2>外觀包裝與核心亮點開箱</h2><ul><li><strong>亮點 1：</strong> </li><li><strong>亮點 2：</strong> </li><li><strong>亮點 3：</strong> </li></ul><h2>實際使用一段時間後的真實感受</h2><p>實際連續使用下來，最有感的地方在於...</p><h2>適合誰買？購買與團購優惠資訊</h2><p>如果你也有相同困擾，<span style="background-color: #fff2b2;"><strong>非常推薦趁這次團購優惠入手！</strong></span></p>`
+    };
+
     if (window.CMS) {
       CMS.registerPreviewStyle("/styles/theme.css");
 
+      // 註冊原生內嵌的 Pages / Word 視覺化編輯器 Widget (無需複製貼上，且自動連動上方模板下拉選單)
+      var RichTextControl = createClass({
+        componentDidMount: function() {
+          var self = this;
+          this.quill = new Quill(this.editorRef, {
+            theme: 'snow',
+            placeholder: '在此直接打字，或從 Mac Pages / Word 直接複製貼上！\n\n💡 提示：\n1. 在上方「選擇文章排版模板」切換選項，這裡就會自動帶入對應模板！\n2. 直接用滑鼠「反白任何文字」，即可點上方工具列改顏色、加螢光筆底色、改字體大小、加底線或置中對齊！',
+            modules: {
+              toolbar: {
+                container: [
+                  [{ 'header': [2, 3, false] }],
+                  [{ 'size': ['small', false, 'large', 'huge'] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{ 'color': [] }, { 'background': [] }],
+                  [{ 'align': [] }],
+                  [{ 'list': 'ordered'}, { 'list': 'bullet' }, 'blockquote'],
+                  ['link', 'image', 'clean']
+                ]
+              }
+            }
+          });
+
+          // 載入文章現有內容
+          if (this.props.value) {
+            this.quill.clipboard.dangerouslyPasteHTML(this.props.value);
+          }
+
+          // 當打字或修改樣式時，即時同步回 Decap CMS 儲存
+          this.quill.on('text-change', function() {
+            var html = self.quill.root.innerHTML;
+            if (html === '<p><br></p>') html = '';
+            self.props.onChange(html);
+          });
+
+          // 自動偵測上方「🎯 選擇文章排版模板」欄位變化，直接帶入模板！
+          this.lastTemplate = null;
+          this.poller = setInterval(function() {
+            var entry = self.props.entry;
+            if (!entry || !entry.getIn) return;
+            var currentTemplate = entry.getIn(['data', 'templateType']);
+            if (self.lastTemplate === null) {
+              self.lastTemplate = currentTemplate;
+              return;
+            }
+            if (currentTemplate && currentTemplate !== self.lastTemplate) {
+              self.lastTemplate = currentTemplate;
+              if (HTML_TEMPLATES[currentTemplate]) {
+                var currentText = self.quill.getText().trim();
+                var isDefaultTemplate = Object.values(HTML_TEMPLATES).some(function(t) {
+                  var tempDiv = document.createElement('div');
+                  tempDiv.innerHTML = t;
+                  return tempDiv.innerText.trim() === currentText;
+                });
+                if (!currentText || isDefaultTemplate || confirm('要將下方文章內容直接帶入「' + currentTemplate + '」的預設段落嗎？')) {
+                  self.quill.clipboard.dangerouslyPasteHTML(HTML_TEMPLATES[currentTemplate]);
+                  self.props.onChange(self.quill.root.innerHTML);
+                }
+              }
+            }
+          }, 400);
+        },
+
+        componentWillUnmount: function() {
+          if (this.poller) clearInterval(this.poller);
+        },
+
+        render: function() {
+          var self = this;
+          return h('div', { className: 'gavin-richtext-wrapper' },
+            h('div', { ref: function(el) { self.editorRef = el; } })
+          );
+        }
+      });
+
+      var RichTextPreview = createClass({
+        render: function() {
+          return h('div', {
+            className: 'article-body',
+            dangerouslySetInnerHTML: { __html: this.props.value || '' }
+          });
+        }
+      });
+
+      CMS.registerWidget('richtext', RichTextControl, RichTextPreview);
+
+      // 註冊繁體中文介面與部署按鈕文字
       CMS.registerLocale('zh_Hant', {
         app: {
           header: {
@@ -246,126 +225,6 @@
             chooseSelected: '✅ 確定插入選取的圖片',
           },
         },
-      });
-    }
-  </script>
-
-  <!-- 底部快速工具列：一鍵開啟 Pages / Word 自由反白排版工作台 -->
-  <div class="template-helper-bar">
-    <button class="word-mode-btn" onclick="openWordEditor()">
-      📝 開啟 Pages / Word 自由反白排版模式 (支援從 Word/Pages 直接貼上格式)
-    </button>
-    <span>｜ 📋 載入模板：</span>
-    <button onclick="loadTemplateIntoWord('cafe')">☕ 食記</button>
-    <button onclick="loadTemplateIntoWord('travel')">✈️ 旅遊</button>
-    <button onclick="loadTemplateIntoWord('hotel')">🏨 住宿</button>
-    <button onclick="loadTemplateIntoWord('review')">🛍️ 評測</button>
-    <span id="copyToast" style="color: #90EE90; font-weight: bold; display: none;">✅ 已複製排版！</span>
-  </div>
-
-  <!-- 📝 Pages / Word 等級的視覺化反白編輯工作台 -->
-  <div id="wordModalOverlay">
-    <div class="word-modal-box">
-      <div class="word-modal-header">
-        <h3>📝 Pages / Word 自由視覺化排版工作台 <span style="font-size: 12px; font-weight: normal; opacity: 0.85;">（直接反白文字即可改顏色、大小、底線、置中；亦可從 Pages/Word 直接貼上）</span></h3>
-        <div class="word-modal-actions">
-          <button class="btn-apply-word" onclick="copyWordHtmlAndClose()">✅ 完成排版！一鍵複製並關閉</button>
-          <button class="btn-close-word" onclick="closeWordEditor()">✕ 關閉</button>
-        </div>
-      </div>
-
-      <!-- 完整 Word 工具列 -->
-      <div id="quillToolbar">
-        <span class="ql-formats">
-          <select class="ql-header" title="標題層級 (H2/H3 自動套用奶茶色底框)">
-            <option value="2">奶茶色大標題 (H2)</option>
-            <option value="3">奶茶色副標題 (H3)</option>
-            <option selected>一般內文</option>
-          </select>
-          <select class="ql-size" title="文字大小">
-            <option value="small">小字</option>
-            <option selected>標準大小</option>
-            <option value="large">大字</option>
-            <option value="huge">特大字</option>
-          </select>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-bold" title="粗體 (Cmd+B)"></button>
-          <button class="ql-italic" title="斜體 (Cmd+I)"></button>
-          <button class="ql-underline" title="底線 (Cmd+U)"></button>
-          <button class="ql-strike" title="刪除線"></button>
-        </span>
-        <span class="ql-formats">
-          <select class="ql-color" title="🎨 反白改文字顏色"></select>
-          <select class="ql-background" title="🖍️ 反白加螢光筆底色"></select>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-align" value="" title="靠左對齊"></button>
-          <button class="ql-align" value="center" title="置中對齊"></button>
-          <button class="ql-align" value="right" title="靠右對齊"></button>
-          <button class="ql-align" value="justify" title="左右對齊"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-list" value="ordered" title="編號清單"></button>
-          <button class="ql-list" value="bullet" title="項目符號"></button>
-          <button class="ql-blockquote" title="引言框"></button>
-        </span>
-        <span class="ql-formats">
-          <button class="ql-link" title="插入超連結"></button>
-          <button class="ql-image" title="插入圖片"></button>
-          <button class="ql-clean" title="清除選取文字格式"></button>
-        </span>
-      </div>
-
-      <!-- 白色畫布編輯區 -->
-      <div id="quillEditorContainer"></div>
-    </div>
-  </div>
-
-  <script>
-    var quill = new Quill('#quillEditorContainer', {
-      modules: {
-        toolbar: '#quillToolbar'
-      },
-      placeholder: '在此直接打字，或從 Mac Pages / Word 直接複製貼上！\n\n💡 提示：直接用滑鼠「反白任何文字」，即可點上方工具列改顏色、加螢光筆底色、改字體大小、加底線或置中對齊！',
-      theme: 'snow'
-    });
-
-    const htmlTemplates = {
-      cafe: `<h2>空間環境與氛圍亮點</h2><p>走進店裡最吸引人的就是採光與裝潢風格，整體的座位配置非常舒適...</p><h3>必拍角落與座位區</h3><ul><li><strong>窗邊採光區：</strong> 午後陽光灑落非常適合拍照。</li><li><strong>室內沙發區：</strong> 桌距寬敞，適合聊天或帶電腦工作。</li></ul><h2>完整菜單與價目表</h2><p>（可將圖片上傳後貼於此處）</p><h2>今日餐點與飲品真實心得</h2><h3>1. 招牌必點餐點名稱 ($價格)</h3><p>口感層次豐富，<span style="color: #b83b2b;"><strong>甜度適中完全不膩口</strong></span>...</p><h2>總結與訪店建議</h2><p>推薦給喜歡質感空間與精緻甜點的朋友，建議週末提早前往以免久候！</p>`,
-      travel: `<h2>行程總覽與行前準備</h2><p>這次規劃的行程涵蓋了必訪景點與私房美食，交通動線順暢不繞路！</p><h3>交通方式與必備票券</h3><ul><li><strong>交通建議：</strong> </li><li><strong>建議停留時間：</strong> </li></ul><h2>第一站：必訪人氣景點亮點</h2><p>現場風景非常壯觀，建議可以在上午時段抵達避開人潮...</p><h2>周邊順遊美食推薦</h2><p>逛完景點後步行即可抵達的在地人氣美食...</p><h2>旅遊小提醒與總結心得</h2><p>整體來說非常適合安排一日遊或多日放鬆行程！</p>`,
-      hotel: `<h2>飯店位置與交通停車資訊</h2><p>飯店地理位置相當便利，周邊生活機能完善...</p><h2>大廳環境與公共設施開箱</h2><p>辦理入住的櫃檯人員親切，大廳設計充滿質感...</p><h2>房型開箱：空間、床鋪與衛浴細節</h2><h3>臥室與床鋪舒適度</h3><p>採光極佳，床墊軟硬適中，隔音表現也很不錯...</p><h3>衛浴空間與備品</h3><p>乾濕分離設計，洗沐備品香氣療癒...</p><h2>早餐餐點與整體住宿評價</h2><p>隔天早餐種類豐富，整體 CP 值相當高！</p>`,
-      review: `<h2>為什麼會入手這款好物？(痛點與需求)</h2><p>平常在挑選這類產品時，最在意的就是實用性、質地與真實 CP 值...</p><h2>外觀包裝與核心亮點開箱</h2><ul><li><strong>亮點 1：</strong> </li><li><strong>亮點 2：</strong> </li><li><strong>亮點 3：</strong> </li></ul><h2>實際使用一段時間後的真實感受</h2><p>實際連續使用下來，最有感的地方在於...</p><h2>適合誰買？購買與團購優惠資訊</h2><p>如果你也有相同困擾，<span style="background-color: #fff2b2;"><strong>非常推薦趁這次團購優惠入手！</strong></span></p>`
-    };
-
-    function openWordEditor() {
-      document.getElementById('wordModalOverlay').style.display = 'flex';
-    }
-
-    function closeWordEditor() {
-      document.getElementById('wordModalOverlay').style.display = 'none';
-    }
-
-    function loadTemplateIntoWord(type) {
-      openWordEditor();
-      quill.clipboard.dangerouslyPasteHTML(htmlTemplates[type]);
-    }
-
-    function copyWordHtmlAndClose() {
-      // 取得排好版的完整 HTML (保留所有顏色、字體大小、底線與對齊)
-      var rawHtml = quill.root.innerHTML;
-      // 整理成乾淨的區塊讓後台儲存並支援自動目錄生成
-      var formatted = rawHtml
-        .replace(/<h2>(.*?)<\/h2>/g, '\n\n## $1\n\n')
-        .replace(/<h3>(.*?)<\/h3>/g, '\n\n### $1\n\n');
-
-      navigator.clipboard.writeText(formatted).then(function() {
-        closeWordEditor();
-        var toast = document.getElementById('copyToast');
-        toast.innerText = '✅ 已複製完整排版！請在「文章主要內容」切換到 Markdown 模式直接貼上 (Cmd+V)';
-        toast.style.display = 'inline';
-        setTimeout(function() { toast.style.display = 'none'; }, 5000);
-        alert('✅ 排版已複製！\n\n最後一步：\n請在後台的「文章主要內容」欄位右上角點一下【Markdown】，然後按 Command+V 貼上，您所有的文字顏色、字體大小、置中對齊與奶茶色標題就會 100% 完美呈現！');
       });
     }
   </script>
