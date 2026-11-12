@@ -2,6 +2,7 @@ backend:
   name: git-gateway
   branch: main
 
+# 將後台系統介面與「發布/儲存」按鈕全部改為繁體中文
 locale: "zh_Hant"
 
 media_folder: "public/images/uploads"
@@ -45,7 +46,7 @@ collections:
         fields:
           - { label: "啟用店家資訊卡？", name: "enabled", widget: "boolean", default: false, required: false }
           - { label: "店家/景點名稱", name: "name", widget: "string", required: false }
-          - { label: "地址", name: "address", name: "address", widget: "string", required: false }
+          - { label: "地址", name: "address", widget: "string", required: false }
           - { label: "營業時間", name: "hours", widget: "string", required: false }
           - { label: "聯絡電話", name: "phone", widget: "string", required: false }
           - { label: "推薦指數", name: "rating", widget: "string", required: false }
