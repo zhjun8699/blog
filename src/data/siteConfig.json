@@ -5,18 +5,28 @@
     "link": "/?category=好物團購"
   },
   "header": {
-    "logoText": "GAVIN'S LIFE",
+    "logoText": "哪裏。DOKO",
     "logoImage": "",
-    "bannerTitle": "GAVIN'S SELECT 質感生活誌",
+    "bannerTitle": "哪裏。DOKO",
     "bannerSubtitle": "美食探店 ‧ 深度旅遊 ‧ 質感保養 ‧ 精選團購",
     "bannerBgImage": ""
   },
   "categories": [
-    { "name": "台灣美食" },
-    { "name": "國內外旅遊" },
-    { "name": "質感保養" },
-    { "name": "好物開箱" },
-    { "name": "好物團購" }
+    {
+      "name": "台灣美食"
+    },
+    {
+      "name": "國內外旅遊"
+    },
+    {
+      "name": "質感保養"
+    },
+    {
+      "name": "好物開箱"
+    },
+    {
+      "name": "好物團購"
+    }
   ],
   "sidebar": {
     "profileTitle": "關於版主",
