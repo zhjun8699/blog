@@ -1,8 +1,8 @@
 {
   "announcement": {
-    "enabled": false,
+    "enabled": true,
     "text": "🔥 本月嚴選好物開團中！限時優惠組合與私藏清單點此查看 →",
-    "link": "/?category=好物團購"
+    "link": "https://www.instagram.com/chun._.1997/"
   },
   "header": {
     "logoText": "哪裏。DOKO",
