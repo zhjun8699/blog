@@ -7,7 +7,7 @@
   <title>部落格專業管理後台 | GAVIN'S SELECT</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
   <style>
-    /* 讓後台編輯器更寬敞、字體更好讀，像 Word 一樣舒適 */
+    /* 讓後台編輯器像 Word 一樣舒適，直接呈現淺米色與奶茶色標題 */
     [data-slate-editor="true"] {
       font-family: "PingFang TC", "Microsoft JhengHei", sans-serif !important;
       font-size: 16px !important;
@@ -31,27 +31,29 @@
     }
     .template-helper-bar {
       position: fixed;
-      bottom: 16px;
+      bottom: 14px;
       left: 50%;
       transform: translateX(-50%);
       background: #3D352E;
       color: #FAF6F0;
-      padding: 8px 18px;
+      padding: 8px 16px;
       border-radius: 30px;
       z-index: 99999;
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
       font-family: sans-serif;
-      font-size: 13px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+      font-size: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
       flex-wrap: wrap;
+      max-width: 96vw;
+      justify-content: center;
     }
     .template-helper-bar button {
       background: #E6D5C3;
       color: #3D352E;
       border: none;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 15px;
       font-weight: bold;
       cursor: pointer;
@@ -61,16 +63,77 @@
       background: #C8AD90;
       color: #fff;
     }
+    .color-btn-red { background: #FFD6CC !important; color: #B83B2B !important; }
+    .color-btn-mark { background: #FFF2B2 !important; color: #3D352E !important; }
+    .divider { opacity: 0.4; margin: 0 4px; }
   </style>
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
-    // 1. 載入前台的 theme.css 到後台右側預覽視窗，實現 100% 所見即所得！
     if (window.CMS) {
+      // 1. 載入前台樣式到右側預覽視窗
       CMS.registerPreviewStyle("/styles/theme.css");
 
-      // 2. 註冊繁體中文介面與部署按鈕文字
+      // 2. 在編輯器「＋」號選單新增【🎨 文字顏色】功能 (含自由調色盤)
+      CMS.registerEditorComponent({
+        id: "color-text",
+        label: "🎨 單獨改文字顏色",
+        fields: [
+          {
+            name: "color",
+            label: "選擇文字顏色 (可點開調色盤自訂)",
+            widget: "color",
+            default: "#B85D3B"
+          },
+          {
+            name: "text",
+            label: "要變色的文字內容",
+            widget: "string"
+          }
+        ],
+        pattern: /^<span style="color:\s*([^;]+); font-weight: 600;">(.*?)<\/span>$/,
+        fromBlock: function(match) {
+          return { color: match[1], text: match[2] };
+        },
+        toBlock: function(obj) {
+          return `<span style="color: ${obj.color || '#B85D3B'}; font-weight: 600;">${obj.text || ''}</span>`;
+        },
+        toPreview: function(obj) {
+          return `<span style="color: ${obj.color || '#B85D3B'}; font-weight: 600;">${obj.text || ''}</span>`;
+        }
+      });
+
+      // 3. 在編輯器「＋」號選單新增【🖍️ 螢光筆畫重點】功能
+      CMS.registerEditorComponent({
+        id: "highlight-text",
+        label: "🖍️ 螢光筆底色畫重點",
+        fields: [
+          {
+            name: "bg",
+            label: "選擇螢光筆底色",
+            widget: "color",
+            default: "#F3E5AB"
+          },
+          {
+            name: "text",
+            label: "要畫重點的文字內容",
+            widget: "string"
+          }
+        ],
+        pattern: /^<mark style="background-color:\s*([^;]+); padding: 2px 6px; border-radius: 4px; color: #3D352E; font-weight: 600;">(.*?)<\/mark>$/,
+        fromBlock: function(match) {
+          return { bg: match[1], text: match[2] };
+        },
+        toBlock: function(obj) {
+          return `<mark style="background-color: ${obj.bg || '#F3E5AB'}; padding: 2px 6px; border-radius: 4px; color: #3D352E; font-weight: 600;">${obj.text || ''}</mark>`;
+        },
+        toPreview: function(obj) {
+          return `<mark style="background-color: ${obj.bg || '#F3E5AB'}; padding: 2px 6px; border-radius: 4px; color: #3D352E; font-weight: 600;">${obj.text || ''}</mark>`;
+        }
+      });
+
+      // 4. 註冊繁體中文介面與部署按鈕文字
       CMS.registerLocale('zh_Hant', {
         app: {
           header: {
@@ -135,14 +198,19 @@
     }
   </script>
 
-  <!-- 底部快速排版與一鍵模板工具列 -->
+  <!-- 底部快速排版、文字改色與 4 大模板工具列 -->
   <div class="template-helper-bar">
-    <span>📋 一鍵複製排版骨架：</span>
-    <button onclick="copyTemplate('cafe')">☕ 咖啡廳食記</button>
-    <button onclick="copyTemplate('travel')">✈️ 旅遊攻略</button>
-    <button onclick="copyTemplate('hotel')">🏨 住宿開箱</button>
-    <button onclick="copyTemplate('review')">🛍️ 好物評測</button>
-    <span id="copyToast" style="color: #90EE90; font-weight: bold; display: none;">✅ 已複製！</span>
+    <span>📋 模板骨架：</span>
+    <button onclick="copyTemplate('cafe')">☕ 食記</button>
+    <button onclick="copyTemplate('travel')">✈️ 旅遊</button>
+    <button onclick="copyTemplate('hotel')">🏨 住宿</button>
+    <button onclick="copyTemplate('review')">🛍️ 評測</button>
+    <span class="divider">|</span>
+    <span>🎨 選取文字改色：</span>
+    <button class="color-btn-red" onclick="insertColorTag('#B83B2B')">🔴 焦糖紅字</button>
+    <button class="color-btn-mark" onclick="insertHighlightTag('#F3E5AB')">🖍️ 螢光筆底色</button>
+    <button onclick="insertColorTag('#8C6D4F')">☕ 摩卡棕字</button>
+    <span id="copyToast" style="color: #90EE90; font-weight: bold; display: none;">✅ 已套用/複製！</span>
   </div>
 
   <script>
@@ -153,11 +221,35 @@
       review: `## 為什麼會入手這款好物？(痛點與需求)\n\n平常在挑選這類產品時，最在意的就是實用性、質地與真實 CP 值...\n\n## 外觀包裝與核心亮點開箱\n\n* **亮點 1：** \n* **亮點 2：** \n* **亮點 3：** \n\n## 實際使用一段時間後的真實感受\n\n實際連續使用下來，最有感的地方在於...\n\n## 適合誰買？購買與團購優惠資訊\n\n如果你也有相同困擾，非常推薦趁這次團購優惠入手！`
     };
 
+    function showToast(msg) {
+      const toast = document.getElementById('copyToast');
+      toast.innerText = msg;
+      toast.style.display = 'inline';
+      setTimeout(() => { toast.style.display = 'none'; }, 2500);
+    }
+
     function copyTemplate(type) {
       navigator.clipboard.writeText(templates[type]).then(() => {
-        const toast = document.getElementById('copyToast');
-        toast.style.display = 'inline';
-        setTimeout(() => { toast.style.display = 'none'; }, 2500);
+        showToast('✅ 已複製模板！請貼入內文');
+      });
+    }
+
+    // 讓使用者輸入或反白文字後一鍵產生彩色字語法
+    function insertColorTag(color) {
+      const selected = window.getSelection().toString() || prompt('請輸入想變成彩色重點的文字：', '重點優惠文字');
+      if (!selected) return;
+      const html = `<span style="color: ${color}; font-weight: 600;">${selected}</span>`;
+      navigator.clipboard.writeText(html).then(() => {
+        showToast('✅ 已複製彩色字！按 Cmd+V 貼上即可');
+      });
+    }
+
+    function insertHighlightTag(bg) {
+      const selected = window.getSelection().toString() || prompt('請輸入想畫螢光筆底線的文字：', '必看重點標記');
+      if (!selected) return;
+      const html = `<mark style="background-color: ${bg}; padding: 2px 6px; border-radius: 4px; color: #3D352E; font-weight: 600;">${selected}</mark>`;
+      navigator.clipboard.writeText(html).then(() => {
+        showToast('✅ 已複製螢光筆重點！按 Cmd+V 貼上即可');
       });
     }
   </script>
