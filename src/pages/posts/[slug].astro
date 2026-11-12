@@ -3,9 +3,10 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export async function getStaticPaths() {
-  const posts = (await getCollection('blog')).sort(
-    (a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf()
-  );
+  const posts = (await getCollection('blog'))
+    .filter(post => !post.data.draft)
+    .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+
   return posts.map((post, index) => ({
     params: { slug: post.slug },
     props: {
@@ -41,7 +42,7 @@ const imageAltText = seoData.imageAlt || post.data.title;
     <div class="post-meta" style="margin-bottom: 16px;">
       <span class="category-badge">{post.data.category}</span>
       <span>📅 發布日期：{new Date(post.data.pubDate).toLocaleDateString('zh-TW')}</span>
-      <span>👁️ 瀏覽次數：<strong id="post-view-count">讀取中...</strong> 次</span>
+      <span>👁️ 瀏覽次數：<strong id="post-view-count" data-base={post.data.baseViews ?? 5000}>讀取中...</strong> 次</span>
       {(post.data.tags || []).map((tag) => (
         <a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">#{tag}</a>
       ))}
@@ -105,7 +106,6 @@ const imageAltText = seoData.imageAlt || post.data.title;
       </div>
     )}
 
-    <!-- 4. 團購導購卡片 + 雲端點擊次數統計 (管理員登入時會自動看到總點擊數) -->
     {promoCard && promoCard.enabled && (
       <div class="promo-product-card">
         {promoCard.image && (
@@ -194,25 +194,23 @@ const imageAltText = seoData.imageAlt || post.data.title;
     const slug = window.location.pathname.split('/').filter(Boolean).pop() || 'home';
     const namespace = 'gavin-select-blog-2026';
     const countEl = document.getElementById('post-view-count');
+    const baseViews = parseInt(countEl?.dataset.base || '5000', 10);
 
-    // 1. 文章瀏覽次數統計
     fetch(`https://api.counterapi.dev/v1/${namespace}/${slug}/up`)
       .then(res => res.json())
       .then(data => {
         if (countEl && data && typeof data.count === 'number') {
-          countEl.innerText = (data.count + 5000).toLocaleString();
+          countEl.innerText = (data.count + baseViews).toLocaleString();
         }
       })
       .catch(() => {
-        if (countEl) countEl.innerText = '熱門瀏覽';
+        if (countEl) countEl.innerText = baseViews.toLocaleString() + '+';
       });
 
-    // 2. 團購按鈕雲端點擊次數讀取與點擊 +1 追蹤
     const trackingBtn = document.querySelector('.tracking-link');
     const promoCountEl = document.getElementById('promo-click-count');
     if (trackingBtn) {
       const trackingId = trackingBtn.dataset.trackingId;
-      // 讀取目前雲端點擊總數 (供管理員查看)
       fetch(`https://api.counterapi.dev/v1/${namespace}/click-${trackingId}`)
         .then(res => res.json())
         .then(data => {
@@ -222,7 +220,6 @@ const imageAltText = seoData.imageAlt || post.data.title;
         })
         .catch(() => {});
 
-      // 當讀者點擊團購按鈕時，雲端計數器自動 +1
       trackingBtn.addEventListener('click', function() {
         fetch(`https://api.counterapi.dev/v1/${namespace}/click-${trackingId}/up`)
           .then(res => res.json())
