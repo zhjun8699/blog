@@ -1,7 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
 import siteConfig from '../../data/siteConfig.json';
-import '../../styles/theme.css';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
