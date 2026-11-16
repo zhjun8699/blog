@@ -48,7 +48,10 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
 {posts.map((post) => {
   const altText = (post.data.seo && post.data.seo.imageAlt) ? post.data.seo.imageAlt : post.data.title;
   const views = post.data.baseViews || 5280;
-  const fiveLines = getFirst5Lines(post.body, post.data.description);
+  const isLocked = Boolean(post.data.password && String(post.data.password).trim() !== '');
+  const fiveLines = isLocked
+    ? '🔒 此篇文章目前已設定密碼保護（品牌審核 / 專屬預覽中），請點擊下方按鈕並輸入專屬密碼即可解鎖閱讀全文。'
+    : getFirst5Lines(post.body, post.data.description);
 
   return (
     <article 
@@ -60,6 +63,7 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
     >
       <h2 class="post-card-title">
         {post.data.pinned && <span class="pinned-badge">📌 置頂精選</span>}
+        {isLocked && <span class="locked-badge">🔒 密碼保護</span>}
         <a href={`/posts/${post.slug}/`}>{post.data.title}</a>
       </h2>
 
@@ -74,7 +78,7 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
         ))}
       </div>
 
-      {post.data.heroImage && (
+      {post.data.heroImage && !isLocked && (
         <a href={`/posts/${post.slug}/`} style="display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 18px; border-radius: 12px; overflow: hidden;">
           <img 
             src={post.data.heroImage} 
@@ -91,7 +95,9 @@ function getFirst5Lines(body: string, fallbackDesc: string) {
       </p>
 
       <div style="text-align: center;">
-        <a href={`/posts/${post.slug}/`} class="read-more-btn">閱讀完整文章 →</a>
+        <a href={`/posts/${post.slug}/`} class="read-more-btn">
+          {isLocked ? '🔑 輸入密碼解鎖文章 →' : '閱讀完整文章 →'}
+        </a>
       </div>
     </article>
   );

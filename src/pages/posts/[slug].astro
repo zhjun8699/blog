@@ -13,6 +13,8 @@ export async function getStaticPaths() {
 const { post, allPosts } = Astro.props;
 const { Content } = await post.render();
 const baseViews = post.data.baseViews || 5280;
+const postPassword = post.data.password ? String(post.data.password).trim() : '';
+const isLocked = postPassword.length > 0;
 
 // 相關文章推薦（同分類優先，最多 4 篇）
 const relatedPosts = (allPosts || [])
@@ -20,14 +22,16 @@ const relatedPosts = (allPosts || [])
   .slice(0, 4);
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description}>
+<BaseLayout title={post.data.title} description={post.data.description} image={post.data.heroImage} seo={post.data.seo}>
   <article class="post-card" style="padding: 32px;">
-    <div style="margin-bottom: 16px;">
+    <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
       <a href="/" style="font-size: 0.9rem; color: var(--milk-tea-dark); text-decoration: none; font-weight: 600;">← 返回文章列表</a>
+      <a href={`/admin/#/collections/blog/entries/${post.slug}`} style="font-size: 0.85rem; color: #9C7A54; text-decoration: none; font-weight: 700;">✏️ 在後台編輯此篇</a>
     </div>
 
     <h1 class="post-card-title" style="font-size: 1.65rem; margin-bottom: 14px;">
       {post.data.pinned && <span class="pinned-badge">📌 置頂精選</span>}
+      {isLocked && <span class="locked-badge">🔒 密碼保護</span>}
       {post.data.title}
     </h1>
 
@@ -42,7 +46,37 @@ const relatedPosts = (allPosts || [])
       ))}
     </div>
 
-    <div class="article-content" id="articleBody" style="line-height: 1.95; font-size: 1.05rem;">
+    {isLocked && (
+      <div id="passwordLockBox" style="background: #FAF6F0; border: 2px dashed #C8AD90; border-radius: 16px; padding: 36px 24px; text-align: center; margin: 24px 0;">
+        <div style="font-size: 2.4rem; margin-bottom: 10px;">🔒</div>
+        <h3 style="margin: 0 0 8px 0; color: #3D352E; font-size: 1.25rem;">此為密碼保護文章（品牌審核 / 專屬預覽）</h3>
+        <p style="margin: 0 0 20px 0; color: #6E6259; font-size: 0.95rem;">請輸入作者提供的專屬審稿或閱讀密碼以解鎖完整圖文內容：</p>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; max-width: 420px; margin: 0 auto;">
+          <input 
+            type="password" 
+            id="pwdInput" 
+            placeholder="請在此輸入密碼..." 
+            style="flex: 1; min-width: 200px; padding: 11px 16px; border-radius: 10px; border: 1px solid #C8AD90; font-size: 1rem; outline: none; background: #FFF;"
+          />
+          <button 
+            type="button" 
+            id="pwdSubmitBtn" 
+            style="padding: 11px 22px; border-radius: 10px; border: none; background: #9C7A54; color: #FFF; font-size: 0.95rem; font-weight: 700; cursor: pointer;"
+          >
+            🔑 確認解鎖
+          </button>
+        </div>
+        <p id="pwdErrorMsg" style="color: #D9534F; font-size: 0.88rem; font-weight: 700; margin-top: 12px; display: none;">
+          ❌ 密碼輸入錯誤，請重新確認後再試一次！
+        </p>
+      </div>
+    )}
+
+    <div 
+      class="article-content" 
+      id="articleBody" 
+      style={isLocked ? "display: none; line-height: 1.95; font-size: 1.05rem;" : "line-height: 1.95; font-size: 1.05rem;"}
+    >
       <Content />
     </div>
   </article>
@@ -65,13 +99,53 @@ const relatedPosts = (allPosts || [])
     </section>
   )}
 
-  <script is:inline define:vars={{ slug: post.slug, baseViews }}>
+  <script is:inline define:vars={{ slug: post.slug, baseViews, postPassword, isLocked }}>
+    // 1. 觀看人數累加
     const key = 'views_' + slug;
     const currentExtra = parseInt(localStorage.getItem(key) || '0', 10) + 1;
     localStorage.setItem(key, String(currentExtra));
     const counterEl = document.getElementById('postViewCounter');
     if (counterEl) {
       counterEl.textContent = (baseViews + currentExtra).toLocaleString();
+    }
+
+    // 2. 文章密碼上鎖與解鎖邏輯 (支援品牌審核專屬密碼 & 網址 ?pwd=密碼 直接解鎖)
+    if (isLocked) {
+      const lockBox = document.getElementById('passwordLockBox');
+      const articleBody = document.getElementById('articleBody');
+      const pwdInput = document.getElementById('pwdInput');
+      const pwdBtn = document.getElementById('pwdSubmitBtn');
+      const pwdErr = document.getElementById('pwdErrorMsg');
+      const sessionKey = 'unlocked_' + slug;
+
+      function unlockArticle() {
+        if (lockBox) lockBox.style.display = 'none';
+        if (articleBody) articleBody.style.display = 'block';
+        sessionStorage.setItem(sessionKey, postPassword);
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPwd = urlParams.get('pwd');
+
+      if (sessionStorage.getItem(sessionKey) === postPassword || urlPwd === postPassword) {
+        unlockArticle();
+      }
+
+      function checkPassword() {
+        const val = (pwdInput ? pwdInput.value : '').trim();
+        if (val === postPassword) {
+          unlockArticle();
+        } else {
+          if (pwdErr) pwdErr.style.display = 'block';
+        }
+      }
+
+      if (pwdBtn) pwdBtn.addEventListener('click', checkPassword);
+      if (pwdInput) {
+        pwdInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') checkPassword();
+        });
+      }
     }
   </script>
 </BaseLayout>

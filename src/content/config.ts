@@ -12,12 +12,14 @@ const blog = defineCollection({
     tags: z.array(z.string()).optional().default([]),
     pinned: z.boolean().optional().default(false),
     draft: z.boolean().optional().default(false),
+    password: z.string().optional().default(''),
     baseViews: z.number().optional().default(5280),
     templateType: z.string().optional(),
     seo: z.object({
       imageAlt: z.string().optional(),
-      metaTitle: z.string().optional(),
-      metaDescription: z.string().optional(),
+      seoTitle: z.string().optional(),
+      seoDescription: z.string().optional(),
+      ogImage: z.string().optional(),
     }).optional(),
   }).passthrough(),
 });

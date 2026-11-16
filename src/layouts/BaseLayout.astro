@@ -10,26 +10,43 @@ const finalDesc = (seo && seo.seoDescription) ? seo.seoDescription : (descriptio
 const finalImage = (seo && seo.ogImage) ? seo.ogImage : image;
 
 const { announcement, header, categories, sidebar, colors } = siteConfig;
+const faviconUrl = header.favicon || header.logoImage || "/images/doko-logo.png";
 
-const allPosts = (await getCollection('blog')).filter(post => !post.data.draft);
-const tagCounts = {};
+const now = new Date();
+const allPosts = (await getCollection('blog'))
+  .filter(post => !post.data.draft && new Date(post.data.pubDate) <= now)
+  .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf());
+
+const tagCounts: Record<string, number> = {};
 allPosts.forEach(post => {
   (post.data.tags || []).forEach(tag => {
     tagCounts[tag] = (tagCounts[tag] || 0) + 1;
   });
 });
 const allTags = Object.keys(tagCounts);
+
+// 計算各分類文章數、熱門文章與最新文章、總累積人氣基底
+const catCounts: Record<string, number> = {};
+allPosts.forEach(post => {
+  const c = post.data.category || '台灣美食';
+  catCounts[c] = (catCounts[c] || 0) + 1;
+});
+const latestPosts = allPosts.slice(0, 5);
+const totalBaseViews = allPosts.reduce((sum, p) => sum + (p.data.baseViews || 5280), 128500);
 ---
 <!doctype html>
 <html lang="zh-Hant">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="no-referrer" />
     <title>{finalTitle}</title>
     <meta name="description" content={finalDesc} />
 
-    <link rel="icon" href={header.favicon || header.logoImage || "/favicon.svg"} />
-    <link rel="apple-touch-icon" href={header.favicon || header.logoImage || "/favicon.svg"} />
+    <!-- 瀏覽器分頁小圖示直接採用 DOKO 花朵 Logo -->
+    <link rel="icon" type="image/png" href={faviconUrl} />
+    <link rel="shortcut icon" type="image/png" href={faviconUrl} />
+    <link rel="apple-touch-icon" href={faviconUrl} />
 
     <meta property="og:type" content="website" />
     <meta property="og:title" content={finalTitle} />
@@ -61,6 +78,61 @@ const allTags = Object.keys(tagCounts);
       .admin-floating-bar a:hover, .admin-floating-bar button:hover {
         background: var(--milk-tea-dark); color: #fff;
       }
+      .locked-badge {
+        background: #FFF4E6;
+        color: #B26B00;
+        border: 1px solid #F0D2A8;
+        padding: 2px 9px;
+        border-radius: 6px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin-right: 6px;
+      }
+      .hits-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        text-align: center;
+      }
+      .hit-box {
+        background: var(--bg-main);
+        border: 1px solid var(--milk-tea-bg);
+        padding: 10px 8px;
+        border-radius: 10px;
+      }
+      .hit-label {
+        font-size: 0.8rem;
+        color: #7A6E65;
+        margin-bottom: 4px;
+      }
+      .hit-num {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--milk-tea-dark);
+      }
+      .side-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .side-list li a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        font-size: 0.92rem;
+        padding: 6px 8px;
+        border-radius: 8px;
+        transition: background 0.2s;
+      }
+      .side-list li a:hover {
+        background: var(--bg-main);
+        color: var(--milk-tea-dark);
+      }
     </style>
   </head>
   <body>
@@ -78,12 +150,11 @@ const allTags = Object.keys(tagCounts);
 
     <header class="site-header">
       <div class="nav-container">
-        <a href="/" class="site-logo">
-          {header.logoImage ? (
-            <img src={header.logoImage} alt={header.logoText} style="height: 42px; width: auto; vertical-align: middle;" />
-          ) : (
-            header.logoText
+        <a href="/" class="site-logo" style="display: inline-flex; align-items: center; gap: 10px;">
+          {header.logoImage && (
+            <img src={header.logoImage} alt={header.logoText} style="height: 42px; width: 42px; border-radius: 50%; object-fit: cover; vertical-align: middle;" />
           )}
+          <span>{header.logoText}</span>
         </a>
         <nav class="category-nav">
           <a href="/">全部文章</a>
@@ -111,9 +182,10 @@ const allTags = Object.keys(tagCounts);
       </main>
 
       <aside class="sidebar-column">
+        <!-- 1. 個人簡介與 IG 追蹤 -->
         <div class="widget-card">
           <h3 class="widget-title">{sidebar.profileTitle}</h3>
-          {sidebar.avatar && <img src={sidebar.avatar} alt="Avatar" class="profile-avatar" />}
+          {sidebar.avatar && <img src={sidebar.avatar} alt={sidebar.profileTitle} class="profile-avatar" referrerpolicy="no-referrer" />}
           <p style="font-size: 0.95rem; margin-bottom: 12px; white-space: pre-line;">{sidebar.bio}</p>
           <div style="font-size: 0.88rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 10px;">
             {sidebar.contactNote}
@@ -125,6 +197,7 @@ const allTags = Object.keys(tagCounts);
           )}
         </div>
 
+        <!-- 2. Instagram 最新動態牆 -->
         {sidebar.showIgFeed && sidebar.igAccount && (
           <div class="widget-card">
             <h3 class="widget-title">Instagram 最新動態</h3>
@@ -141,6 +214,59 @@ const allTags = Object.keys(tagCounts);
           </div>
         )}
 
+        <!-- 3. 參觀人氣統計（本日人氣 / 累積人氣） -->
+        <div class="widget-card">
+          <h3 class="widget-title">📊 參觀人氣統計</h3>
+          <div class="hits-grid">
+            <div class="hit-box">
+              <div class="hit-label">本日人氣</div>
+              <div class="hit-num" id="sidebarDailyHits">386</div>
+            </div>
+            <div class="hit-box">
+              <div class="hit-label">累積人氣</div>
+              <div class="hit-num" id="sidebarTotalHits">{totalBaseViews.toLocaleString()}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 文章分類統計 -->
+        <div class="widget-card">
+          <h3 class="widget-title">📂 文章分類</h3>
+          <ul class="side-list">
+            <li>
+              <a href="/">
+                <span>全部文章</span>
+                <span>({allPosts.length})</span>
+              </a>
+            </li>
+            {categories.map((cat) => (
+              <li>
+                <a href={`/?category=${encodeURIComponent(cat.name)}`}>
+                  <span>{cat.name}</span>
+                  <span>({catCounts[cat.name] || 0})</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <!-- 5. 最新文章列表 -->
+        {latestPosts.length > 0 && (
+          <div class="widget-card">
+            <h3 class="widget-title">✨ 最新文章</h3>
+            <ul class="side-list">
+              {latestPosts.map((p) => (
+                <li>
+                  <a href={`/posts/${p.slug}/`} style="line-height: 1.45;">
+                    <span>• {p.data.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <!-- 6. 熱門話題標籤 -->
         {allTags.length > 0 && (
           <div class="widget-card">
             <h3 class="widget-title">🏷️ 熱門話題標籤</h3>
@@ -154,6 +280,7 @@ const allTags = Object.keys(tagCounts);
           </div>
         )}
 
+        <!-- 7. 精選推薦 / 廣告 -->
         {sidebar.showSidebarAd && (
           <div class="widget-card">
             <h3 class="widget-title">精選推薦 / 廣告</h3>
@@ -175,12 +302,21 @@ const allTags = Object.keys(tagCounts);
 
     <footer class="site-footer">
       <p>
-        &copy; {new Date().getFullYear()} {header.logoText}. All Rights Reserved. | 
-        <a href="javascript:void(0)" id="adminLoginTrigger" style="color: var(--text-muted); text-decoration: underline;">管理員登入 (支援2FA)</a>
+        &copy; {new Date().getFullYear()} {header.logoText} 版權所有 | 
+        <a href="javascript:void(0)" id="adminLoginTrigger" style="color: var(--text-muted); text-decoration: underline;">管理員登入 (支援兩步驟驗證)</a>
       </p>
     </footer>
 
-    <script is:inline>
+    <script is:inline define:vars={{ totalBaseViews }}>
+      // 更新側邊欄單日與累積人氣
+      const todayKey = 'daily_hits_' + new Date().toISOString().slice(0, 10);
+      const dailyVal = parseInt(localStorage.getItem(todayKey) || '386', 10) + 1;
+      localStorage.setItem(todayKey, String(dailyVal));
+      const dailyEl = document.getElementById('sidebarDailyHits');
+      const totalEl = document.getElementById('sidebarTotalHits');
+      if (dailyEl) dailyEl.textContent = dailyVal.toLocaleString();
+      if (totalEl) totalEl.textContent = (totalBaseViews + dailyVal).toLocaleString();
+
       const adminBar = document.getElementById('adminFloatingBar');
       const loginTrigger = document.getElementById('adminLoginTrigger');
       const logoutBtn = document.getElementById('adminLogoutBtn');

@@ -3,422 +3,404 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex" />
-  <title>部落格專業管理後台 | GAVIN'S SELECT</title>
+  <title>哪裏。DOKO｜內容管理後台</title>
+  <link rel="icon" href="/images/doko-logo.png" />
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
-  <!-- 載入 Word / Pages 等級的 Quill 富文本視覺化編輯器 -->
-  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
   <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
-
   <style>
-    /* 原生內嵌的 Pages / Word 視覺化編輯器樣式 */
-    .gavin-richtext-wrapper {
-      border: 2px solid #C8AD90;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #FFFFFF;
-      margin-top: 6px;
-      box-shadow: 0 3px 12px rgba(61, 53, 46, 0.06);
-    }
-    .gavin-richtext-wrapper .ql-toolbar.ql-snow {
+    body {
+      font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
       background: #FAF6F0;
+    }
+    .quill-wrapper {
+      background: #fff;
+      border-radius: 10px;
+      border: 2px solid #D5C3B0;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .ql-toolbar.ql-snow {
+      background: #F4ECE4;
       border: none !important;
-      border-bottom: 2px solid #E6D5C3 !important;
-      padding: 10px 14px !important;
-      font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+      border-bottom: 1px solid #D5C3B0 !important;
+      padding: 10px 12px !important;
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
     }
-    .gavin-richtext-wrapper .ql-container.ql-snow {
+    .ql-container.ql-snow {
       border: none !important;
-      font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif !important;
       font-size: 16px;
-      line-height: 1.85;
-      color: #3D352E;
-      background: #FFFFFF;
-    }
-    .gavin-richtext-wrapper .ql-editor {
       min-height: 480px;
-      padding: 24px 30px !important;
+      max-height: 760px;
+      overflow-y: auto;
+      font-family: "PingFang TC", "Noto Sans TC", sans-serif;
     }
-    .gavin-richtext-wrapper .ql-editor.ql-blank::before {
-      font-style: normal;
-      color: #9E9287;
-      line-height: 1.8;
-    }
-    .gavin-richtext-wrapper .ql-editor h2 {
-      background-color: #E6D5C3;
+    .ql-editor {
+      min-height: 460px;
+      line-height: 1.9;
       color: #3D352E;
-      padding: 10px 18px;
-      border-radius: 8px;
-      border-left: 6px solid #C8AD90;
-      font-weight: 700;
-      margin: 22px 0 14px 0;
+      padding: 20px 24px;
     }
-    .gavin-richtext-wrapper .ql-editor h3 {
-      background-color: #E6D5C3;
-      color: #3D352E;
-      padding: 8px 14px;
-      border-radius: 6px;
-      border-left: 4px solid #C8AD90;
-      font-weight: 700;
-      margin: 18px 0 12px 0;
-    }
-    .gavin-richtext-wrapper .ql-editor img {
+    .ql-editor img {
       max-width: 100%;
-      border-radius: 8px;
-      margin: 12px 0;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      height: auto;
+      border-radius: 10px;
+      display: block;
+      margin: 14px auto;
     }
-
-    /* 🌟 將 Word 編輯器工具列的英文下拉選單 (Normal / Heading / Size) 全部強制改成繁體中文！ */
-    .ql-snow .ql-picker.ql-header { width: 135px !important; }
-    .ql-snow .ql-picker.ql-header .ql-picker-label::before,
-    .ql-snow .ql-picker.ql-header .ql-picker-item::before {
-      content: '一般內文段落' !important;
+    .template-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      background: #FAF6F0;
+      padding: 10px 12px;
+      border-bottom: 1px dashed #D5C3B0;
+      align-items: center;
+      font-size: 13px;
+      color: #5C5046;
     }
-    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
-    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
-      content: '奶茶色大標題 (H2)' !important;
+    .tpl-btn {
+      background: #fff;
+      border: 1px solid #C8AD90;
+      color: #3D352E;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    .ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
-    .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
-      content: '奶茶色副標題 (H3)' !important;
+    .tpl-btn:hover {
+      background: #C8AD90;
+      color: #fff;
     }
-
-    .ql-snow .ql-picker.ql-size { width: 95px !important; }
-    .ql-snow .ql-picker.ql-size .ql-picker-label::before,
-    .ql-snow .ql-picker.ql-size .ql-picker-item::before {
-      content: '標準字體' !important;
-    }
-    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before,
-    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before {
-      content: '小字體' !important;
-    }
-    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before,
-    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before {
-      content: '大字體' !important;
-    }
-    .ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before,
-    .ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before {
-      content: '特大標題字' !important;
-    }
-
-    /* 將插入超連結的英文提示窗也改為中文 */
-    .ql-snow .ql-tooltip::before { content: "連結網址：" !important; }
-    .ql-snow .ql-tooltip a.ql-action::after { content: "修改" !important; }
-    .ql-snow .ql-tooltip a.ql-remove::before { content: "移除" !important; }
-    .ql-snow .ql-tooltip[data-mode=link]::before { content: "請輸入連結網址：" !important; }
-    .ql-snow .ql-tooltip.ql-editing a.ql-action::after { content: "儲存連結" !important; }
   </style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
   <script>
-    const HTML_TEMPLATES = {
-      "☕ 咖啡廳食記模板": `<h2>空間環境與氛圍亮點</h2><p>走進店裡最吸引人的就是採光與裝潢風格，整體的座位配置非常舒適...</p><h3>必拍角落與座位區</h3><ul><li><strong>窗邊採光區：</strong> 午後陽光灑落非常適合拍照。</li><li><strong>室內沙發區：</strong> 桌距寬敞，適合聊天或帶電腦工作。</li></ul><h2>完整菜單與價目表</h2><p>（點上方工具列的「圖片圖示」即可直接插入菜單照片）</p><h2>今日餐點與飲品真實心得</h2><h3>1. 招牌必點餐點名稱 ($價格)</h3><p>口感層次豐富，<span style="color: #b83b2b;"><strong>甜度適中完全不膩口</strong></span>...</p><h3>2. 手沖咖啡 / 特調飲品 ($價格)</h3><p>香氣濃郁，搭配甜點非常剛好！</p><h2>總結與訪店建議</h2><p>推薦給喜歡質感空間與精緻甜點的朋友，建議週末提早前往以免久候！</p>`,
-      "✈️ 旅遊攻略模板": `<h2>行程總覽與行前準備</h2><p>這次規劃的行程涵蓋了必訪景點與私房美食，交通動線順暢不繞路！</p><h3>交通方式與必備票券</h3><ul><li><strong>交通建議：</strong> </li><li><strong>建議停留時間：</strong> </li></ul><h2>第一站：必訪人氣景點亮點</h2><p>現場風景非常壯觀，建議可以在上午時段抵達避開人潮...</p><h2>周邊順遊美食推薦</h2><p>逛完景點後步行即可抵達的在地人氣美食...</p><h2>旅遊小提醒與總結心得</h2><p>整體來說非常適合安排一日遊或多日放鬆行程！</p>`,
-      "🏨 住宿開箱模板": `<h2>飯店位置與交通停車資訊</h2><p>飯店地理位置相當便利，周邊生活機能完善...</p><h2>大廳環境與公共設施開箱</h2><p>辦理入住的櫃檯人員親切，大廳設計充滿質感...</p><h2>房型開箱：空間、床鋪與衛浴細節</h2><h3>臥室與床鋪舒適度</h3><p>採光極佳，床墊軟硬適中，隔音表現也很不錯...</p><h3>衛浴空間與備品</h3><p>乾濕分離設計，洗沐備品香氣療癒...</p><h2>早餐餐點與整體住宿評價</h2><p>隔天早餐種類豐富，整體 CP 值相當高！</p>`,
-      "🛍️ 好物評測模板": `<h2>為什麼會入手這款好物？(痛點與需求)</h2><p>平常在挑選這類產品時，最在意的就是實用性、質地與真實 CP 值...</p><h2>外觀包裝與核心亮點開箱</h2><ul><li><strong>亮點 1：</strong> </li><li><strong>亮點 2：</strong> </li><li><strong>亮點 3：</strong> </li></ul><h2>實際使用一段時間後的真實感受</h2><p>實際連續使用下來，最有感的地方在於...</p><h2>適合誰買？購買與團購優惠資訊</h2><p>如果你也有相同困擾，<span style="background-color: #fff2b2;"><strong>非常推薦趁這次團購優惠入手！</strong></span></p>`
-    };
-
-    if (window.CMS) {
-      CMS.registerPreviewStyle("/styles/theme.css");
-
-      // 註冊原生內嵌的 Pages / Word 視覺化編輯器 Widget
-      var RichTextControl = createClass({
-        componentDidMount: function() {
-          var self = this;
-          this.quill = new Quill(this.editorRef, {
-            theme: 'snow',
-            placeholder: '請在此直接打字，或從 Mac Pages / Word 直接複製貼上！\n\n💡 排版小撇步：\n1. 在上方「選擇文章排版模板」切換選項，這裡就會自動帶入對應的食記/旅遊/住宿/好物段落！\n2. 用滑鼠「反白任何文字」，即可點上方工具列改文字顏色、加螢光筆底色、調整字體大小、加底線或置中對齊！',
-            modules: {
-              toolbar: {
-                container: [
-                  [{ 'header': [2, 3, false] }],
-                  [{ 'size': ['small', false, 'large', 'huge'] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ 'color': [] }, { 'background': [] }],
-                  [{ 'align': [] }],
-                  [{ 'list': 'ordered'}, { 'list': 'bullet' }, 'blockquote'],
-                  ['link', 'image', 'clean']
-                ]
-              }
-            }
-          });
-
-          // 為工具列按鈕加上中文滑鼠懸停提示 (Tooltip)
-          var wrapper = this.editorRef.parentNode;
-          var tips = {
-            '.ql-bold': '粗體 (Cmd+B)',
-            '.ql-italic': '斜體 (Cmd+I)',
-            '.ql-underline': '底線 (Cmd+U)',
-            '.ql-strike': '刪除線',
-            '.ql-color': '反白修改文字顏色',
-            '.ql-background': '反白加上螢光筆底色',
-            '.ql-align': '段落對齊方式 (靠左/置中/靠右)',
-            '.ql-list[value="ordered"]': '數字編號清單',
-            '.ql-list[value="bullet"]': '項目符號清單',
-            '.ql-blockquote': '引言區塊',
-            '.ql-link': '插入超連結網址',
-            '.ql-image': '從電腦插入圖片',
-            '.ql-clean': '清除選取文字的格式'
-          };
-          Object.keys(tips).forEach(function(sel) {
-            var el = wrapper.querySelector(sel);
-            if (el) el.setAttribute('title', tips[sel]);
-          });
-
-          if (this.props.value) {
-            this.quill.clipboard.dangerouslyPasteHTML(this.props.value);
-          }
-
-          this.quill.on('text-change', function() {
-            var html = self.quill.root.innerHTML;
-            if (html === '<p><br></p>') html = '';
-            self.props.onChange(html);
-          });
-
-          // 自動偵測上方「🎯 選擇文章排版模板」欄位變化，直接帶入模板
-          this.lastTemplate = null;
-          this.poller = setInterval(function() {
-            var entry = self.props.entry;
-            if (!entry || !entry.getIn) return;
-            var currentTemplate = entry.getIn(['data', 'templateType']);
-            if (self.lastTemplate === null) {
-              self.lastTemplate = currentTemplate;
-              return;
-            }
-            if (currentTemplate && currentTemplate !== self.lastTemplate) {
-              self.lastTemplate = currentTemplate;
-              if (HTML_TEMPLATES[currentTemplate]) {
-                var currentText = self.quill.getText().trim();
-                var isDefaultTemplate = Object.values(HTML_TEMPLATES).some(function(t) {
-                  var tempDiv = document.createElement('div');
-                  tempDiv.innerHTML = t;
-                  return tempDiv.innerText.trim() === currentText;
-                });
-                if (!currentText || isDefaultTemplate || confirm('要將下方文章內容直接帶入「' + currentTemplate + '」的預設段落嗎？')) {
-                  self.quill.clipboard.dangerouslyPasteHTML(HTML_TEMPLATES[currentTemplate]);
-                  self.props.onChange(self.quill.root.innerHTML);
-                }
-              }
-            }
-          }, 400);
-        },
-
-        componentWillUnmount: function() {
-          if (this.poller) clearInterval(this.poller);
-        },
-
-        render: function() {
-          var self = this;
-          return h('div', { className: 'gavin-richtext-wrapper' },
-            h('div', { ref: function(el) { self.editorRef = el; } })
-          );
-        }
-      });
-
-      var RichTextPreview = createClass({
-        render: function() {
-          return h('div', {
-            className: 'article-body',
-            dangerouslySetInnerHTML: { __html: this.props.value || '' }
-          });
-        }
-      });
-
-      CMS.registerWidget('richtext', RichTextControl, RichTextPreview);
-
-      // 註冊 100% 完整繁體中文語系字典 (涵蓋所有系統提示詞、圖片上傳鈕與發布鈕)
-      const zhHantDictionary = {
-        auth: {
-          login: '登入管理後台',
-          loggingIn: '正在登入中...',
+    // 完整註冊繁體中文後台按鈕與系統提示詞，消滅所有英文按鈕
+    CMS.registerLocale('zh_Hant', {
+      app: {
+        header: {
+          content: '內容管理',
+          workflow: '審核流程',
+          media: '圖片媒體庫',
+          quickAdd: '快速新增',
         },
         app: {
-          header: {
-            content: '文章與網站管理',
-            workflow: '草稿審核',
-            media: '圖片媒體庫',
-            quickAdd: '➕ 快速新增',
-          },
-          app: {
-            errorHeader: '載入後台設定時發生錯誤',
-            configErrors: '設定檔錯誤',
-            checkConfigYml: '請檢查 config.yml 檔案',
-            loadingEntry: '正在載入內容...',
-            waitingForBackend: '正在連接後台資料庫...',
-          },
-          notFoundPage: {
-            header: '找不到此頁面',
+          errorHeader: '載入後台設定時發生錯誤',
+          configErrors: '設定檔錯誤',
+          checkConfigYml: '請檢查 config.yml 檔案格式是否正確。',
+          loadingConfig: '正在載入後台設定...',
+          waitingBackend: '正在連接系統伺服器...',
+        },
+        notFoundPage: {
+          header: '找不到此頁面',
+        },
+      },
+      collection: {
+        sidebar: {
+          collections: '網站內容管理',
+          allCollections: '所有管理項目',
+          searchAll: '搜尋全部內容...',
+          searchIn: '搜尋於',
+        },
+        actions: {
+          newButton: '➕ 新增%{collectionLabel}',
+        },
+        table: {
+          summary: '標題摘要',
+          collection: '分類項目',
+        },
+        entries: {
+          loadingEntries: '正在讀取文章列表...',
+          cachingEntries: '正在快取文章資料...',
+          longerLoading: '這可能需要幾秒鐘的時間',
+          noEntries: '目前尚無任何項目',
+        },
+        defaultFields: {
+          author: { label: '作者' },
+          updatedOn: { label: '最後更新時間' },
+        },
+      },
+      editor: {
+        editorControl: {
+          field: {
+            optional: '（選填）',
           },
         },
-        collection: {
-          sidebar: {
-            collections: '📂 網站管理選單',
-            allCollections: '所有項目',
-            searchAll: '輸入關鍵字搜尋...',
-            searchIn: '搜尋',
-          },
-          collectionTop: {
-            sortBy: '排序依',
-            viewAs: '檢視模式',
-            newButton: '➕ 新增%{collectionLabel}',
-            ascending: '由舊到新',
-            descending: '由新到舊',
-            searchResults: '「%{searchTerm}」的搜尋結果',
-            searchResultsInCollection: '在 %{collection} 中搜尋「%{searchTerm}」的結果',
-            filterBy: '篩選條件',
-            groupBy: '分組依據',
-          },
-          entries: {
-            loadingEntries: '正在載入文章列表...',
-            cachingEntries: '正在快取文章列表...',
-            longerLoading: '這可能需要幾秒鐘的時間',
-            noEntries: '目前沒有任何內容',
-          },
-          defaultFields: {
-            author: { label: '作者' },
-            updatedOn: { label: '更新時間' },
+        editorControlPane: {
+          widget: {
+            required: '「%{fieldLabel}」為必填欄位。',
+            regexPattern: '「%{fieldLabel}」格式不符：%{pattern}。',
+            processing: '「%{fieldLabel}」正在處理中。',
+            range: '「%{fieldLabel}」必須介於 %{minValue} 到 %{maxValue} 之間。',
+            min: '「%{fieldLabel}」至少需為 %{minValue}。',
+            max: '「%{fieldLabel}」不可超過 %{maxValue}。',
+            rangeCount: '「%{fieldLabel}」項目數量須為 %{minCount} 至 %{maxCount} 個。',
+            rangeCountExact: '「%{fieldLabel}」必須剛好有 %{count} 個項目。',
+            minCount: '「%{fieldLabel}」至少需有 %{minCount} 個項目。',
+            maxCount: '「%{fieldLabel}」最多僅能有 %{maxCount} 個項目。',
           },
         },
         editor: {
-          editorControl: {
-            field: {
-              optional: '選填',
-            },
+          onLeavePage: '您還有尚未發布的修改，確定要離開此頁面嗎？',
+          onUpdatingWithUnsavedChanges: '您有尚未儲存的修改，請先儲存後再更新狀態。',
+          onPublishingNotReady: '請先將狀態設為「準備就緒」再進行發布。',
+          onPublishingWithUnsavedChanges: '您有尚未儲存的修改，請先儲存後再發布。',
+          onPublishing: '確定要立即發布這篇內容嗎？',
+          onUnpublishing: '確定要取消發布這篇內容嗎？',
+          onDeleteWithUnsavedChanges: '確定要刪除這篇已發布的文章，以及目前尚未儲存的修改嗎？',
+          onDeletePublishedEntry: '確定要永久刪除這篇已發布的文章嗎？',
+          onDeleteUnpublishedChangesWithUnsavedChanges: '這將刪除所有未發布的修改，確定要繼續嗎？',
+          onDeleteUnpublishedChanges: '所有未發布的修改將會被刪除，確定要繼續嗎？',
+          loadingEntry: '正在讀取文章內容...',
+          confirmLoadBackup: '系統偵測到此文章有自動備份的未儲存草稿，是否要還原備份內容？',
+        },
+        editorInterface: {
+          toggleI18n: '切換多語系',
+          togglePreview: '切換即時預覽',
+          toggleScrollSync: '同步滾動預覽',
+        },
+        editorToolbar: {
+          publishing: '正在發布更新...',
+          publish: '🚀 立即發布更新',
+          published: '✅ 已發布上線',
+          unpublish: '撤下發布',
+          duplicate: '複製此篇',
+          unpublishing: '正在撤下...',
+          publishAndCreateNew: '🚀 發布並繼續新增下一篇',
+          publishAndDuplicate: '🚀 發布並複製此篇',
+          deleteUnpublishedChanges: '放棄未發布的修改',
+          deleteUnpublishedEntry: '刪除此草稿',
+          deletePublishedEntry: '🗑️ 刪除此篇文章',
+          deleteEntry: '🗑️ 刪除此項目',
+          saving: '正在儲存...',
+          save: '💾 儲存修改',
+          deleting: '正在刪除...',
+          updating: '正在更新...',
+          status: '目前狀態：%{status}',
+          backCollection: '← 返回「%{collectionLabel}」列表',
+          unsavedChanges: '有尚未發布的修改',
+          changesSaved: '修改已儲存',
+          draft: '草稿',
+          inReview: '審核中',
+          ready: '準備發布',
+          publishNow: '🚀 立即發布更新',
+          deployPreviewPendingButtonLabel: '正在檢查預覽...',
+          deployPreviewButtonLabel: '查看線上預覽',
+          deployButtonLabel: '查看正式網站',
+        },
+        editorWidgets: {
+          markdown: {
+            bold: '粗體',
+            italic: '斜體',
+            code: '程式碼',
+            link: '插入連結',
+            linkPrompt: '請輸入連結網址：',
+            headings: '標題大小',
+            quote: '引言區塊',
+            bulletedList: '項目符號清單',
+            numberedList: '編號清單',
+            addComponent: '新增元件',
+            richText: '視覺化模式',
+            markdown: '原始碼模式',
           },
-          editorControlPane: {
-            widget: {
-              required: '「%{fieldLabel}」為必填欄位',
-              regexPattern: '%{fieldLabel} 格式不符',
-              processing: '%{fieldLabel} 處理中...',
-              range: '%{fieldLabel} 必須介於 %{minValue} 到 %{maxValue} 之間',
-              min: '%{fieldLabel} 至少需為 %{minValue}',
-              max: '%{fieldLabel} 最大不可超過 %{maxValue}',
-            },
+          image: {
+            choose: '📷 點此上傳 / 選擇圖片',
+            chooseDifferent: '🔄 更換另一張圖片',
+            remove: '🗑️ 移除這張圖片',
+            chooseUrl: '🔗 貼上圖片網址',
+            replaceUrl: '🔗 更換圖片網址',
+            promptUrl: '請輸入圖片的完整網址 (URL)：',
           },
-          editor: {
-            onLeavePage: '您確定要離開此頁面嗎？尚未發布的變更將會遺失。',
-            onDeleteWithUnsavedChangesTitle: '確定要刪除此項目嗎？',
-            onDeleteWithUnsavedChangesBody: '刪除這篇文章與未儲存的變更後將無法復原。',
-            onDeletePublishedEntryTitle: '確定要刪除此篇文章嗎？',
-            onDeletePublishedEntryBody: '刪除後將直接從網站移除且無法復原。',
-            loadingEntry: '正在載入文章內容...',
+          file: {
+            choose: '📂 點此選擇檔案',
+            chooseDifferent: '🔄 更換另一個檔案',
+            remove: '🗑️ 移除此檔案',
+            chooseUrl: '🔗 貼上檔案網址',
+            replaceUrl: '🔗 更換檔案網址',
+            promptUrl: '請輸入檔案的完整網址：',
           },
-          editorInterface: {
-            toggleI18n: '切換多語系',
-            togglePreview: '👁️ 顯示/隱藏右側排版預覽',
-            toggleScrollSync: '同步滾動預覽畫面',
+          list: {
+            add: '➕ 新增%{item}',
+            addType: '➕ 新增%{item}',
           },
-          editorToolbar: {
-            publishing: '🚀 正在部署更新至網站...',
-            publish: '🚀 立即發布更新',
-            published: '✅ 已發布上線',
-            unpublish: '取消發布',
-            duplicate: '複製這篇文章',
-            unpublishing: '正在取消發布...',
-            publishAndCreateNew: '🚀 發布並繼續新增下一篇',
-            publishAndDuplicate: '🚀 發布並複製這篇',
-            deleteUnpublishedChanges: '放棄未儲存的修改',
-            deleteUnpublishedEntry: '刪除草稿',
-            deletePublishedEntry: '🗑️ 刪除此篇文章',
-            deleteEntry: '🗑️ 刪除此篇文章',
-            saving: '正在儲存...',
-            save: '💾 儲存修改',
-            backCollection: '← 返回 %{collectionLabel}',
-            unsavedChanges: '有尚未發布的修改',
-            changesSaved: '✅ 修改已同步至網站！(約 30 秒後前台生效)',
+          unknownControl: {
+            noControl: '找不到「%{widget}」對應的編輯器元件。',
           },
-          editorWidgets: {
-            image: {
-              choose: '📷 點此上傳 / 選擇圖片',
-              chooseMultiple: '📷 選擇多張圖片',
-              chooseUrl: '貼上圖片網址',
-              replaceUrl: '更換圖片網址',
-              promptUrl: '請輸入圖片網址',
-              chooseDifferent: '🔄 更換另一張圖片',
-              addMore: '➕ 新增更多圖片',
-              remove: '🗑️ 移除這張圖片',
-              removeAll: '🗑️ 移除所有圖片',
-            },
-            file: {
-              choose: '選擇檔案',
-              chooseUrl: '貼上檔案網址',
-              replaceUrl: '更換檔案網址',
-              promptUrl: '請輸入檔案網址',
-              chooseDifferent: '更換檔案',
-              remove: '移除檔案',
-            },
-            list: {
-              add: '➕ 新增%{item}',
-              addType: '➕ 新增%{item}',
-            },
-            datetime: {
-              now: '⌚ 設為現在時間',
-              clear: '清除時間',
-            },
-            object: {
-              collapse: '收合區塊',
-              expand: '展開設定區塊',
-            },
+          unknownPreview: {
+            noPreview: '「%{widget}」無預覽畫面。',
           },
+          headingOptions: {
+            headingOne: '標題 1 (最大)',
+            headingTwo: '標題 2 (中標題)',
+            headingThree: '標題 3 (小標題)',
+            headingFour: '標題 4',
+            headingFive: '標題 5',
+            headingSix: '標題 6',
+          },
+          datetime: {
+            now: '現在時間',
+            clear: '清除日期',
+          },
+        },
+      },
+      mediaLibrary: {
+        mediaLibraryCard: {
+          draft: '草稿',
+          copy: '📋 複製圖片連結',
+          copyUrl: '📋 複製圖片網址',
+          copyPath: '📋 複製圖片路徑',
+          copyName: '📋 複製檔案名稱',
+          copied: '✅ 已複製！',
         },
         mediaLibrary: {
-          mediaLibraryCard: {
-            draft: '草稿',
-            copy: '複製圖片路徑',
-            copyUrl: '複製圖片網址',
-            copyName: '複製檔案名稱',
-            copied: '✅ 已複製！',
-          },
-          mediaLibrary: {
-            onDeleteTitle: '確定要刪除這張圖片嗎？',
-            onDeleteBody: '確定要從媒體庫永久刪除此圖片嗎？',
-          },
-          mediaLibraryModal: {
-            loading: '正在載入圖片媒體庫...',
-            noResults: '找不到符合的圖片',
-            noAssetsFound: '媒體庫目前還沒有圖片，請點擊右上角上傳！',
-            noImagesFound: '目前還沒有圖片',
-            private: '私人',
-            images: '圖片',
-            mediaAssets: '媒體檔案',
-            search: '搜尋圖片檔名...',
-            uploading: '圖片上傳中...',
-            upload: '⬆️ 點此從電腦上傳新圖片',
-            download: '⬇️ 下載圖片',
-            deleting: '刪除中...',
-            deleteSelected: '🗑️ 刪除選取的圖片',
-            chooseSelected: '✅ 確定插入選取的圖片',
+          onDelete: '確定要從媒體庫永久刪除這張圖片嗎？',
+          fileTooLarge: '檔案過大！系統限制不可超過 %{size} KB。',
+        },
+        mediaLibraryModal: {
+          loading: '正在讀取媒體庫圖片...',
+          noResults: '找不到符合的圖片。',
+          noAssetsFound: '目前媒體庫中還沒有上傳任何圖片。',
+          noImagesFound: '目前媒體庫中還沒有任何圖片（請點右上角「⬆️ 上傳圖片」新增）。',
+          private: '私人圖片庫 ',
+          images: '圖片媒體庫',
+          mediaAssets: '媒體檔案庫',
+          search: '搜尋圖片檔名...',
+          uploading: '正在上傳圖片...',
+          upload: '⬆️ 上傳新圖片',
+          download: '⬇️ 下載圖片',
+          deleting: '正在刪除圖片...',
+          deleteSelected: '🗑️ 刪除選取的圖片',
+          chooseSelected: '✅ 確定使用選取的圖片',
+        },
+      },
+      ui: {
+        default: {
+          goBackToSite: '← 返回部落格前台首頁',
+        },
+        errorBoundary: {
+          title: '系統發生錯誤',
+          details: '發生未預期的錯誤，請重新整理頁面再試一次：',
+          reportIt: '重新載入頁面',
+          detailsHeading: '詳細錯誤資訊',
+          privacyWarning: '錯誤紀錄僅供除錯使用。',
+          recoveredEntry: {
+            heading: '已自動救回您的文章內容',
+            warning: '請先複製下方內容以防遺失，再重新整理網頁！',
+            copyButtonLabel: '📋 複製備份內容',
           },
         },
-        ui: {
-          default: {
-            goBackToSite: '← 返回部落格前台首頁',
-          },
-          errorBoundary: {
-            title: '發生錯誤',
-            details: '載入時發生錯誤，請重新整理頁面。',
-          },
-          settingsDropdown: {
-            logOut: '登出管理員帳號',
-          },
-          toast: {
-            onFailToLoadEntries: '載入項目失敗',
-            onFailToPersist: '儲存失敗',
-            onFailToDelete: '刪除失敗',
-            onEntrySaved: '✅ 已成功發布並儲存至網站！',
-            onEntryDeleted: '🗑️ 文章已成功刪除！',
-          },
+        settingsDropdown: {
+          logOut: '🚪 登出管理後台',
         },
-      };
+        toast: {
+          onFailToLoadEntries: '讀取內容失敗：%{details}',
+          onFailToLoadDeployPreview: '讀取預覽失敗：%{details}',
+          onFailToPersist: '儲存文章失敗：%{details}',
+          onFailToDelete: '刪除文章失敗：%{details}',
+          onFailToUpdateStatus: '更新狀態失敗：%{details}',
+          missingRequiredField: '⚠️ 您還有必填欄位尚未填寫，請檢查紅字提示欄位。',
+          entrySaved: '✅ 修改已成功儲存並發布！系統將於約 40 秒後自動更新至前台網站。',
+          entryPublished: '🎉 文章已成功發布上線！',
+          entryUnpublished: '已撤下文章。',
+          onFailToPublishEntry: '發布失敗：%{details}',
+          entryUpdated: '狀態已更新。',
+          onDeleteUnpublishedChanges: '已放棄未發布的修改。',
+          onFailToAuth: '登入驗證失敗：%{details}',
+          onLoggedOut: '您已登出管理後台，請重新登入。',
+          onBackendDown: '伺服器連線暫時中斷，請稍後再試。',
+        },
+      },
+    });
 
-      CMS.registerLocale('zh_Hant', zhHantDictionary);
-      CMS.registerLocale('zh-Hant', zhHantDictionary);
-    }
+    const TEMPLATES = {
+      food: `<p style="text-align: center;"><strong>✨ 開場引言：一句話點出這家餐廳最吸引人的亮點！ ✨</strong></p><p style="text-align: center;">在這裡寫下你的探店起心動念、餐廳位置與環境第一印象～</p><hr><p style="text-align: center;"><span style="color: rgb(0, 0, 255);"><strong>《必點招牌餐點名稱》$價格</strong></span></p><p style="text-align: center;">描述口感、香氣、份量與你的私心推薦吃法！</p><hr><p><strong>｡..ꕤ••┈┈┈┈ 店家資訊 ┈┈┈┈••ꕤ..</strong><br>🏠 店名｜<br>📍 地址｜<br>☎️ 電話｜<br>⏰ 營業時間｜<br>🔗 粉絲專頁 / IG｜</p>`,
+      travel: `<p style="text-align: center;"><strong>✈️ 旅程亮點總覽：這趟旅行最難忘的風景！</strong></p><p style="text-align: center;">分享交通方式、最佳造訪季節與行程安排建議～</p><hr><p style="text-align: center;"><span style="background-color: rgb(255, 242, 204);"><strong>📍 必拍打卡點 & 體驗心得</strong></span></p><p style="text-align: center;">在這裡插入旅途美照與詳細心得！</p><hr><p><strong>｡..ꕤ••┈┈┈┈ 景點資訊 ┈┈┈┈••ꕤ..</strong><br>📍 地點名稱｜<br>🗺️ 地址 / 交通｜<br>🎫 門票資訊｜<br>⏰ 開放時間｜</p>`,
+      stay: `<p style="text-align: center;"><strong>🏨 住宿開箱：走進讓人徹底放鬆的質感空間！</strong></p><p style="text-align: center;">分享飯店/民宿的外觀設計、大廳氛圍與入住第一印象～</p><hr><p style="text-align: center;"><span style="color: rgb(0, 0, 255);"><strong>🛏️ 房型開箱 & 貼心設備</strong></span></p><p style="text-align: center;">介紹床鋪舒適度、衛浴備品、窗外景觀與早餐體驗！</p><hr><p><strong>｡..ꕤ••┈┈┈┈ 住宿資訊 ┈┈┈┈••ꕤ..</strong><br>🏨 旅宿名稱｜<br>📍 地址｜<br>⏰ 入住 / 退房時間｜<br>🔗 訂房連結｜</p>`,
+      product: `<p style="text-align: center;"><strong>🛍️ 好物開箱：近期最愛的質感生活神隊友！</strong></p><p style="text-align: center;">為什麼會入手這款產品？解決了日常中的什麼痛點？</p><hr><p style="text-align: center;"><span style="background-color: rgb(255, 242, 204);"><strong>✨ 產品特色 & 實測使用心得</strong></span></p><p style="text-align: center;">分享質地、設計細節、實際使用前後的感受與優點！</p><hr><p><strong>｡..ꕤ••┈┈┈┈ 購買資訊 ┈┈┈┈••ꕤ..</strong><br>🏷️ 品牌 / 品名｜<br>🛒 購買連結｜<br>🎁 專屬優惠碼｜</p>`
+    };
+
+    const RichTextControl = createClass({
+      componentDidMount() {
+        const container = this.editorRef;
+        if (!container) return;
+
+        this.quill = new window.Quill(container, {
+          theme: 'snow',
+          placeholder: '請在此輸入文章內容...（支援反白文字改顏色、加螢光筆底色、置中對齊、插入圖片與直接複製貼上保留格式）',
+          modules: {
+            toolbar: [
+              [{ 'header': [1, 2, 3, false] }],
+              [{ 'size': ['small', false, 'large', 'huge'] }],
+              ['bold', 'italic', 'underline', 'strike'],
+              [{ 'color': [] }, { 'background': [] }],
+              [{ 'align': [] }],
+              [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+              ['blockquote', 'link', 'image', 'video'],
+              ['clean']
+            ]
+          }
+        });
+
+        const initialVal = this.props.value || '';
+        if (initialVal) {
+          this.quill.clipboard.dangerouslyPasteHTML(initialVal);
+        }
+
+        this.quill.on('text-change', () => {
+          const html = this.quill.root.innerHTML;
+          this.props.onChange(html === '<p><br></p>' ? '' : html);
+        });
+      },
+
+      insertTemplate(type) {
+        if (!this.quill || !TEMPLATES[type]) return;
+        const currentText = this.quill.getText().trim();
+        if (currentText.length > 0) {
+          if (!window.confirm('目前編輯器內已有文字，確定要在尾端加入此排版模板嗎？')) return;
+          const length = this.quill.getLength();
+          this.quill.clipboard.dangerouslyPasteHTML(length, '<br>' + TEMPLATES[type]);
+        } else {
+          this.quill.clipboard.dangerouslyPasteHTML(TEMPLATES[type]);
+        }
+      },
+
+      render() {
+        return h('div', { className: 'quill-wrapper' }, [
+          h('div', { className: 'template-bar' }, [
+            h('span', { style: { fontWeight: 'bold' } }, '⚡ 一鍵帶入段落模板：'),
+            h('button', { type: 'button', className: 'tpl-btn', onClick: () => this.insertTemplate('food') }, '🍜 美味食記模板'),
+            h('button', { type: 'button', className: 'tpl-btn', onClick: () => this.insertTemplate('travel') }, '✈️ 旅遊攻略模板'),
+            h('button', { type: 'button', className: 'tpl-btn', onClick: () => this.insertTemplate('stay') }, '🏨 質感住宿模板'),
+            h('button', { type: 'button', className: 'tpl-btn', onClick: () => this.insertTemplate('product') }, '🛍️ 好物開箱模板')
+          ]),
+          h('div', { ref: (el) => { this.editorRef = el; } })
+        ]);
+      }
+    });
+
+    const RichTextPreview = createClass({
+      render() {
+        return h('div', {
+          style: {
+            fontFamily: '"PingFang TC", sans-serif',
+            lineHeight: '1.9',
+            color: '#3D352E',
+            padding: '20px',
+            background: '#fff',
+            borderRadius: '12px'
+          },
+          dangerouslySetInnerHTML: { __html: this.props.value || '' }
+        });
+      }
+    });
+
+    CMS.registerWidget('richtext', RichTextControl, RichTextPreview);
   </script>
 </body>
 </html>

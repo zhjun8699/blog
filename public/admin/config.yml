@@ -121,7 +121,7 @@ collections:
     label: "🎨 修改版面 / 圖片 / 分類設定"
     files:
       - name: "site_config"
-        label: "⚙️ 全站外觀、Logo、Banner、跑馬燈、側邊欄與配色設定"
+        label: "⚙️ 全站外觀、分頁小圖示、標誌、橫幅、跑馬燈、側邊欄與配色設定"
         file: "src/data/siteConfig.json"
         fields:
           - label: "📄 首頁每頁顯示文章篇數"
@@ -159,7 +159,7 @@ collections:
                 name: "favicon"
                 widget: "image"
                 required: false
-                hint: "📐【修改分頁小圖示】這裡就是修改瀏覽器分頁標籤上左邊那個小圖示的地方！建議上傳 128 × 128 像素或 200 × 200 像素（1:1 正方形 PNG）。⚠️ 請將電腦圖片檔名改為純英文（如 favicon.png）再上傳。"
+                hint: "📐【修改分頁小圖示】這裡就是修改瀏覽器分頁標籤上「哪裏。DOKO」左邊那個小圖示的地方！建議上傳 128 × 128 像素或 200 × 200 像素（1:1 正方形 PNG）。⚠️ 請將電腦圖片檔名改為純英文（如 favicon.png）再上傳。"
               - label: "🔤 導覽列左上角品牌文字 (當未上傳標誌圖片時顯示)"
                 name: "logoText"
                 widget: "string"
